@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');
     Route::get('estimates/{estimate}/pdf', [EstimateController::class, 'pdf'])->name('estimates.pdf');
+    Route::get('estimates/{estimate}/excel', [EstimateController::class, 'excel'])->name('estimates.excel');
     Route::resource('estimates', EstimateController::class)->except(['show']);
 
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');

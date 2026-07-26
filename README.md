@@ -14,7 +14,7 @@ the full phase plan and reasoning.
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
-| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | 🚧 In progress (PDF export done) |
+| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | 🚧 In progress (PDF + Excel export done) |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
 ## Notable decisions
@@ -167,9 +167,23 @@ the full phase plan and reasoning.
   module has a dedicated `*.pdf.blade.php` view using plain CSS classes
   from the shared `resources/views/pdf/_styles.blade.php` partial,
   instead of reusing the Tailwind-based `*.print.blade.php` view directly
-  — same layout/data, different markup. **Not yet wired**: Excel export
-  (`create_estimate_excel.php` and friends) and the "email as PDF/Excel"
-  feature (`estimate_mail.php`) — both still Phase 5 follow-up work.
+  — same layout/data, different markup.
+- **Excel export (`maatwebsite/excel`)**: `App\Exports\EstimateItemsExport`
+  rebuilds `create_estimate_excel.php`'s line-item spreadsheet against the
+  normalized `estimate_items` table instead of re-parsing the delimited
+  `product` blob — `estimates.excel` route, gated by the same `print`
+  ability as the PDF/browser-print routes. Legacy only had this for
+  Estimate (no Bill/Quotation/GST equivalent), so that's the only export
+  here too. One deliberate correctness fix: the row-counter in
+  `EstimateItemsExport::map()` is an instance property, not a `static`
+  local like a naive port might use — a static local would leak its
+  count across every export a queue worker/Octane process ever runs
+  (the class stays loaded between requests), silently starting later
+  exports' "Sr. No" column at the wrong number. Legacy's 35-character
+  truncation of the work-name column (apparently a fixed-column-width
+  workaround) isn't reproduced — real spreadsheet columns don't need it.
+  **Not yet wired**: the "email as PDF/Excel" feature (`estimate_mail.php`)
+  — still Phase 5 follow-up work.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

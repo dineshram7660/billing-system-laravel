@@ -113,4 +113,27 @@ class EstimateControllerTest extends TestCase
         $response->assertHeader('content-type', 'application/pdf');
         $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
+
+    public function test_excel_endpoint_downloads_the_line_items(): void
+    {
+        \Maatwebsite\Excel\Facades\Excel::fake();
+
+        $user = User::factory()->create();
+        $estimate = Estimate::create(['subject' => 'Excel Estimate', 'bill_date' => now()->toDateString(), 'total' => 200]);
+        $estimate->items()->create(['product_name' => 'Item', 'price' => 200, 'qty' => 1, 'total' => 200, 'sort_order' => 0]);
+
+        $this->actingAs($user)->get("/estimates/{$estimate->id}/excel");
+
+        \Maatwebsite\Excel\Facades\Excel::assertDownloaded("estimate-{$estimate->id}.xlsx", function (\App\Exports\EstimateItemsExport $export) {
+            return $export->collection()->count() === 1;
+        });
+    }
+
+    public function test_excel_endpoint_is_forbidden_without_print_permission(): void
+    {
+        $user = User::factory()->subAdmin(['Estimate', 'Add New Estimate', 'Edit Estimate', 'Delete Estimate'])->create();
+        $estimate = Estimate::create(['subject' => 'Excel Estimate', 'bill_date' => now()->toDateString(), 'total' => 200]);
+
+        $this->actingAs($user)->get("/estimates/{$estimate->id}/excel")->assertForbidden();
+    }
 }
