@@ -127,7 +127,11 @@
                                     Inquiry
                                 </x-sidebar-link>
                             @endcan
-                            <x-sidebar-link :built="false">Account</x-sidebar-link>
+                            @can('viewAny', \App\Models\Account::class)
+                                <x-sidebar-link :href="route('accounts.index')" :active="request()->routeIs('accounts.*')">
+                                    Account
+                                </x-sidebar-link>
+                            @endcan
                             @can('viewAny', \App\Models\SalarySlip::class)
                                 <x-sidebar-link :href="route('salary-slips.index')" :active="request()->routeIs('salary-slips.*')">
                                     Salary Slip

@@ -15,7 +15,7 @@ the full phase plan and reasoning.
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
-| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry done) |
+| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry, Account done) |
 
 ## Notable decisions
 
@@ -209,6 +209,24 @@ the full phase plan and reasoning.
   Legacy's table name typo (`inquery`, not `inquiry`) is kept as the
   literal DB table name on the `Inquiry` model — only the model/class/
   route names are spelled correctly.
+- **Account (`App\Http\Controllers\AccountController`)** is a named
+  ledger account (e.g. "Cash", "Bank", a vendor name) with its own
+  Credit/Debit transaction history (`App\Models\AccountDetail`, via
+  `App\Http\Controllers\AccountDetailController`) — structurally the
+  same pattern as Salary Slip's advance-payment ledger, but standalone
+  rather than tied to a payslip. The `account` table shares several
+  column names with `employee` (`username`, `password`, `status`,
+  `par_day`, `designation_id`), but grepping the whole legacy `admin/`
+  tree confirmed `add_edit_account.php` only ever reads/writes
+  `account_name` — so those columns are intentionally left off
+  `Fillable` on the `Account` model rather than carried over as unused
+  cruft. `App\Policies\AccountPolicy` overrides `view()` (rather than
+  inheriting `LegacyModulePolicy`'s default, which just delegates to
+  `viewAny()`) because legacy splits list access (`"Account"`) from
+  viewing one account's ledger (`"View Account"`) as two separate
+  permissions. **Not included** (follow-up work): `rojmed.php`, an
+  aggregate ledger register across all accounts — analogous to the GST
+  Report being separate from per-invoice Bill printing.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

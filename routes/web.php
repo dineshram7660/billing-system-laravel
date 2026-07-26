@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountDetailController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -66,6 +68,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
     Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
+
+    Route::resource('accounts', AccountController::class);
+    Route::post('accounts/{account}/details', [AccountDetailController::class, 'store'])->name('accounts.details.store');
+    Route::delete('accounts/{account}/details/{detail}', [AccountDetailController::class, 'destroy'])->name('accounts.details.destroy');
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).
