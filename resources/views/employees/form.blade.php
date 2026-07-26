@@ -68,6 +68,11 @@
             <div class="mt-6 flex items-center gap-3">
                 <x-primary-button>{{ $editing ? 'Save changes' : 'Add employee' }}</x-primary-button>
                 <a href="{{ route('employees.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cancel</a>
+                @can('viewAny', \App\Models\SalaryDetail::class)
+                    @if ($editing)
+                        <a href="{{ route('employees.salary-details.index', $employee) }}" class="ms-auto text-sm text-gray-600 hover:text-gray-900">Pay Rates &rarr;</a>
+                    @endif
+                @endcan
             </div>
         </form>
     </div>

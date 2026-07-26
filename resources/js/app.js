@@ -74,4 +74,52 @@ Alpine.data('lineItemForm', (initialItems, searchUrl) => ({
     },
 }));
 
+/**
+ * Salary Slip create/edit form — replaces ajax_get_salary_data.php's
+ * pipe-delimited response with clean JSON. On a *new* slip, changing
+ * employee/month/year prefills Days Worked/Overtime from attendance
+ * (only for new slips, matching legacy — an existing slip's entered
+ * values are never silently overwritten by attendance data on edit).
+ * Rate and outstanding-advance figures are always kept live since
+ * they're read-only display fields, not form inputs.
+ */
+Alpine.data('salarySlipForm', (dataUrl, isNew, initial) => ({
+    employeeId: initial.employee_id ?? '',
+    month: initial.salary_slip_month ?? '',
+    year: initial.salary_slip_year ?? '',
+    dayWork: initial.day_work ?? 0,
+    overTime: initial.over_time ?? 0,
+    ledgerBalance: 0,
+    parDayAmount: 0,
+    perDayExtra: 0,
+
+    init() {
+        this.fetchData();
+    },
+
+    async fetchData() {
+        if (!this.employeeId || !this.month || !this.year) {
+            return;
+        }
+
+        const params = new URLSearchParams({ employee_id: this.employeeId, month: this.month, year: this.year });
+        const response = await fetch(`${dataUrl}?${params}`);
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (isNew) {
+            this.dayWork = data.total_days;
+            this.overTime = data.total_over_time;
+        }
+
+        this.ledgerBalance = data.ledger_balance;
+        this.parDayAmount = data.par_day_amount;
+        this.perDayExtra = data.per_day_extra;
+    },
+}));
+
 Alpine.start();

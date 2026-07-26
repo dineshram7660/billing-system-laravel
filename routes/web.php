@@ -9,6 +9,8 @@ use App\Http\Controllers\GstReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\SalaryDetailController;
+use App\Http\Controllers\SalarySlipController;
 use App\Http\Controllers\SubAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
     Route::resource('products', ProductController::class)->except(['show']);
     Route::resource('employees', EmployeeController::class)->except(['show']);
+    Route::get('employees/{employee}/salary-details', [SalaryDetailController::class, 'index'])->name('employees.salary-details.index');
+    Route::post('employees/{employee}/salary-details', [SalaryDetailController::class, 'store'])->name('employees.salary-details.store');
+    Route::delete('employees/{employee}/salary-details/{salary_detail}', [SalaryDetailController::class, 'destroy'])->name('employees.salary-details.destroy');
 
     Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
     Route::resource('bills', BillController::class)->except(['show']);
@@ -41,6 +46,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('gst-report', [GstReportController::class, 'index'])->name('gst-report.index');
     Route::get('gst-report/view', [GstReportController::class, 'show'])->name('gst-report.show');
+
+    Route::get('salary-slips/data', [SalarySlipController::class, 'data'])->name('salary-slips.data');
+    Route::get('salary-slips/{salary_slip}/print', [SalarySlipController::class, 'print'])->name('salary-slips.print');
+    Route::resource('salary-slips', SalarySlipController::class)->except(['show']);
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).
