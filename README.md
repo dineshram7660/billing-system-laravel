@@ -13,7 +13,7 @@ the full phase plan and reasoning.
 | 1 | Auth against the existing `admin` table, dashboard shell + sidebar | ✅ Done |
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
-| 4 | Bill, Estimate, Quotation, GST report, Salary | 🚧 In progress (Bill, Estimate, Quotation, GST report done) |
+| 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
@@ -127,6 +127,40 @@ the full phase plan and reasoning.
   per-invoice prints, this is a browser-print HTML view for now; legacy
   generated an actual downloadable PDF via dompdf — real PDF export for
   all of these is deferred to Phase 5.
+- **Salary Slip (`App\Http\Controllers\SalarySlipController`)** rebuilds
+  `add_edit_salary_slip.php`/`salary_slip.php`/`salary_slip_print.php`/
+  `ajax_get_salary_data.php`. A slip is a monthly payslip computed from
+  that month's `attendance` rows and the latest applicable `salary_details`
+  rate (picked by "most recent row on/before month-end", not a real
+  date-range table — matches legacy). The `GET /salary-slips/data`
+  endpoint replaces the legacy pipe-delimited AJAX response with JSON,
+  used by the create/edit form to prefill Days Worked/Overtime — only for
+  *new* slips, matching legacy (an existing slip's entered values are
+  never silently overwritten). Earnings math
+  (`SalarySlipController::calculateEarnings()`) reproduces
+  `salary_slip_print.php` exactly: `basic_pay = round(day_work ×
+  par_day_amount) + round(over_time × par_day_amount/8)`, same shape for
+  the extra-allowance/per_day_extra pair.
+  - **Advance-payment ledger**: `employee_details` is a running Debit/
+    Credit ledger per employee (Debit = advanced to them, Credit = repaid/
+    deducted — unrelated to `Bill`'s use of the same table via
+    `bill_id`/`type`; here `bill_id` holds a `salary_slip.id`, a legacy
+    naming collision, not an actual bill reference). A slip's "Advance
+    Payment Deduction" field is mirrored into this ledger as a Credit row.
+    **Deliberate fix over legacy**: the legacy UPDATE-only sync silently
+    no-ops if a slip's advance was originally zero (no row to update) and
+    is later edited to a nonzero value; this uses `updateOrCreate`/delete
+    so editing always keeps the ledger correct.
+  - **Pay-rate history** (`App\Http\Controllers\SalaryDetailController`,
+    nested under `employees/{employee}/salary-details`) covers the
+    essential list/add/delete subset of `view_salary.php`/
+    `add_edit_salary.php` — editing an existing rate isn't ported (legacy
+    rarely uses it differently from adding a new dated row).
+  - **Not included** (follow-up work): the aggregate "Salary Sheet"
+    payroll register (`salary_bill.php`, the `salary_bill.php`/"Salary
+    Sheet" sidebar item is still a placeholder) and a UI for recording
+    ad-hoc advance/debit ledger entries outside of a slip's own deduction
+    field.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

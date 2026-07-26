@@ -120,7 +120,11 @@
                             <x-sidebar-link :built="false">Send Email</x-sidebar-link>
                             <x-sidebar-link :built="false">Inquiry</x-sidebar-link>
                             <x-sidebar-link :built="false">Account</x-sidebar-link>
-                            <x-sidebar-link :built="false">Salary Slip</x-sidebar-link>
+                            @can('viewAny', \App\Models\SalarySlip::class)
+                                <x-sidebar-link :href="route('salary-slips.index')" :active="request()->routeIs('salary-slips.*')">
+                                    Salary Slip
+                                </x-sidebar-link>
+                            @endcan
                         </div>
                     </div>
 
