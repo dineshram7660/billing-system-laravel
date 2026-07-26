@@ -16,6 +16,9 @@
         <button onclick="window.print()" class="rounded-md bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white">Print</button>
         <a href="{{ route('estimates.pdf', $estimate) }}" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">Download PDF</a>
         <a href="{{ route('estimates.excel', $estimate) }}" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">Download Excel</a>
+        @can('send-email')
+            <a href="{{ route('estimates.mail.create', $estimate) }}" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">Email to Client</a>
+        @endcan
     </div>
 
     <div class="mx-auto max-w-3xl border border-gray-800">

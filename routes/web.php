@@ -3,8 +3,10 @@
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\EmailSendController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\EstimateMailController;
 use App\Http\Controllers\GstReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -42,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');
     Route::get('estimates/{estimate}/pdf', [EstimateController::class, 'pdf'])->name('estimates.pdf');
     Route::get('estimates/{estimate}/excel', [EstimateController::class, 'excel'])->name('estimates.excel');
+    Route::get('estimates/{estimate}/mail', [EstimateMailController::class, 'create'])->name('estimates.mail.create');
+    Route::post('estimates/{estimate}/mail', [EstimateMailController::class, 'store'])->name('estimates.mail.store');
+
+    Route::get('email-sends', [EmailSendController::class, 'index'])->name('email-sends.index');
     Route::resource('estimates', EstimateController::class)->except(['show']);
 
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');

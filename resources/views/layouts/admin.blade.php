@@ -117,7 +117,11 @@
                     <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Other</p>
                         <div class="space-y-0.5">
-                            <x-sidebar-link :built="false">Send Email</x-sidebar-link>
+                            @can('send-email')
+                                <x-sidebar-link :href="route('email-sends.index')" :active="request()->routeIs('email-sends.*')">
+                                    Send Email
+                                </x-sidebar-link>
+                            @endcan
                             <x-sidebar-link :built="false">Inquiry</x-sidebar-link>
                             <x-sidebar-link :built="false">Account</x-sidebar-link>
                             @can('viewAny', \App\Models\SalarySlip::class)
