@@ -75,7 +75,11 @@
                     <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Billing</p>
                         <div class="space-y-0.5">
-                            <x-sidebar-link :built="false">Bill</x-sidebar-link>
+                            @can('viewAny', \App\Models\Bill::class)
+                                <x-sidebar-link :href="route('bills.index')" :active="request()->routeIs('bills.*')">
+                                    Bill
+                                </x-sidebar-link>
+                            @endcan
                             <x-sidebar-link :built="false">Estimate</x-sidebar-link>
                             <x-sidebar-link :built="false">Quotation</x-sidebar-link>
                         </div>

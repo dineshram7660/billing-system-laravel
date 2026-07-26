@@ -13,7 +13,7 @@ the full phase plan and reasoning.
 | 1 | Auth against the existing `admin` table, dashboard shell + sidebar | ✅ Done |
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
-| 4 | Bill, Estimate, Quotation, GST report, Salary | ⏳ Not started |
+| 4 | Bill, Estimate, Quotation, GST report, Salary | 🚧 In progress (Bill done) |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
@@ -58,6 +58,42 @@ the full phase plan and reasoning.
   silently corrupting data. The original `product` columns are left
   untouched as an audit trail; new features should read `items()` /
   `measurementItems()` on `Bill`/`Estimate`, not `product` directly.
+- **Bill module (`App\Http\Controllers\BillController`)** rebuilds
+  `add_edit_bill.php`/`bill.php`/`bill_print.php` against the normalized
+  `bill_items` table instead of the delimited `product` column:
+  - Line items are edited with an Alpine.js component
+    (`lineItemForm` in `resources/js/app.js`) that searches
+    `GET /products/search` (any authenticated user, not gated by the
+    `Product` module's own permissions — matches legacy) instead of the
+    old jQuery-UI-autocomplete + per-keystroke AJAX round trips.
+  - **Line/bill totals are recomputed server-side** (`price × qty` per
+    line, summed for `bill.total`) — the legacy form trusted whatever the
+    client posted for both; this is a deliberate hardening, not a
+    behavior-preserving port.
+  - **Invoice number is a suggested default only** (`MAX(invoice_no) +
+    1`), left fully editable and *not* enforced unique on save — matches
+    legacy behavior; historical `invoice_no` values already contain
+    gaps/duplicates from the old "last row's number + 1" logic, so a
+    uniqueness constraint needs a data audit first, not app-level
+    enforcement now.
+  - Bill list defaults to **India's April–March fiscal year**
+    (`BillController::currentFiscalYearStart()`), matching the legacy
+    `bill.php` default filter, and searches invoice/subject/sir
+    name/ref no. A different pattern than other index pages, since bill
+    volume makes an unfiltered list impractical.
+  - `bills.print` is a browser-print HTML view (`window.print()` on
+    load), not a generated PDF — same as the legacy `bill_print.php`.
+    GST math (9% CGST + 9% SGST when `gst_bill=1`, grand total rounded
+    once after adding both) and the amount-in-words conversion
+    (`App\Support\IndianCurrency`) reproduce the legacy print template
+    exactly, including its "round after summing" order of operations.
+  - Company-wide constants that were hardcoded into the legacy print
+    template (GSTIN, bank details, MSME registration) now live in
+    `config/company.php`.
+  - The GST register/TDS PDF report (legacy `gst_bill.php`, an aggregate
+    date-range export, not per-invoice) and the "seed a bill from a
+    measurement sheet" fallback are **not ported yet** — tracked as
+    follow-up work under Phase 4/5.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BillController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\EmployeeController;
@@ -22,8 +23,12 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('departments', DepartmentController::class)->except(['show']);
     Route::resource('designations', DesignationController::class)->except(['show']);
+    Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
     Route::resource('products', ProductController::class)->except(['show']);
     Route::resource('employees', EmployeeController::class)->except(['show']);
+
+    Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
+    Route::resource('bills', BillController::class)->except(['show']);
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).
