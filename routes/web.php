@@ -16,6 +16,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SalaryDetailController;
+use App\Http\Controllers\SalarySheetController;
 use App\Http\Controllers\SalarySlipController;
 use App\Http\Controllers\SubAdminController;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,11 @@ Route::middleware('auth')->group(function () {
     Route::get('gst-report', [GstReportController::class, 'index'])->name('gst-report.index');
     Route::get('gst-report/view', [GstReportController::class, 'show'])->name('gst-report.show');
     Route::get('gst-report/pdf', [GstReportController::class, 'pdf'])->name('gst-report.pdf');
+
+    Route::get('salary-sheet', [SalarySheetController::class, 'index'])->name('salary-sheet.index');
+    Route::get('salary-sheet/view', [SalarySheetController::class, 'show'])->name('salary-sheet.show');
+    Route::get('salary-sheet/pdf', [SalarySheetController::class, 'pdf'])->name('salary-sheet.pdf');
+    Route::get('salary-sheet/excel', [SalarySheetController::class, 'excel'])->name('salary-sheet.excel');
 
     Route::get('salary-slips/data', [SalarySlipController::class, 'data'])->name('salary-slips.data');
     Route::get('salary-slips/{salary_slip}/print', [SalarySlipController::class, 'print'])->name('salary-slips.print');

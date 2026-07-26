@@ -101,7 +101,11 @@
                                     GST Report
                                 </x-sidebar-link>
                             @endcan
-                            <x-sidebar-link :built="false">Salary Sheet</x-sidebar-link>
+                            @can('view-salary-sheet')
+                                <x-sidebar-link :href="route('salary-sheet.index')" :active="request()->routeIs('salary-sheet.*')">
+                                    Salary Sheet
+                                </x-sidebar-link>
+                            @endcan
                         </div>
                     </div>
 
