@@ -68,6 +68,9 @@
                                     @can('update', $estimate)
                                         <a href="{{ route('estimates.edit', $estimate) }}" class="text-gray-600 hover:text-gray-900">Edit</a>
                                     @endcan
+                                    @can('edit-measurement')
+                                        <a href="{{ route('estimates.measurement.edit', $estimate) }}" class="text-gray-600 hover:text-gray-900">Measurement</a>
+                                    @endcan
                                     @can('delete', $estimate)
                                         <form method="POST" action="{{ route('estimates.destroy', $estimate) }}"
                                             onsubmit="return confirm('Delete this estimate?');">

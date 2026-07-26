@@ -122,4 +122,66 @@ Alpine.data('salarySlipForm', (dataUrl, isNew, initial) => ({
     },
 }));
 
+/**
+ * Bill/Estimate measurement-sheet editor — replaces
+ * add_edit_bill_measurement.php/add_edit_estimate_measurement.php's
+ * dynamic "box"/"line" jQuery DOM manipulation. A measurement sheet is a
+ * list of product groups ("boxes"), each with its own list of
+ * length x breadth measurement lines. Quantity-per-line and total-per-
+ * group formulas match count_total_bill() in the legacy JS exactly:
+ * quantity = no x length x breadth x unit (blank fields default to 1),
+ * group total = sum of that group's line quantities.
+ */
+Alpine.data('measurementForm', (initialGroups) => ({
+    groups: initialGroups,
+
+    blankLine() {
+        return { service_no: '', description: '', no: '', length: '', breath: '', unit: '', quantity: '' };
+    },
+
+    blankGroup() {
+        return { total: '', total_text: '', total_unit: '', lines: [this.blankLine()] };
+    },
+
+    addGroup() {
+        this.groups.push(this.blankGroup());
+    },
+
+    removeGroup(groupIndex) {
+        this.groups.splice(groupIndex, 1);
+    },
+
+    addLine(groupIndex) {
+        this.groups[groupIndex].lines.push(this.blankLine());
+    },
+
+    removeLine(groupIndex, lineIndex) {
+        this.groups[groupIndex].lines.splice(lineIndex, 1);
+        this.recalcGroupTotal(groupIndex);
+    },
+
+    recalcLine(groupIndex, lineIndex) {
+        const line = this.groups[groupIndex].lines[lineIndex];
+        const no = parseFloat(line.no) || (line.no === '' ? null : 0);
+        const length = parseFloat(line.length) || (line.length === '' ? null : 0);
+        const breath = parseFloat(line.breath) || (line.breath === '' ? null : 0);
+        const unit = parseFloat(line.unit) || (line.unit === '' ? null : 0);
+
+        if (no === null && length === null && breath === null && unit === null) {
+            return;
+        }
+
+        const factor = (v) => (v === null || v === '' ? 1 : v);
+        line.quantity = (factor(no) * factor(length) * factor(breath) * factor(unit)).toFixed(3);
+
+        this.recalcGroupTotal(groupIndex);
+    },
+
+    recalcGroupTotal(groupIndex) {
+        const total = this.groups[groupIndex].lines
+            .reduce((sum, line) => sum + (parseFloat(line.quantity) || 0), 0);
+        this.groups[groupIndex].total = total.toFixed(3);
+    },
+}));
+
 Alpine.start();

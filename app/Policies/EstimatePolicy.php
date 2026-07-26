@@ -13,4 +13,9 @@ class EstimatePolicy extends LegacyModulePolicy
     {
         return $user->hasLegacyPermission('Print Estimate');
     }
+
+    public function printMeasurement(User $user, Estimate $estimate): bool
+    {
+        return $user->hasLegacyPermission('Print Estimate Measurement');
+    }
 }

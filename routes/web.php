@@ -17,6 +17,8 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GstReportController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\MeasurementBillController;
+use App\Http\Controllers\MeasurementEstimateController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
@@ -51,6 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
     Route::get('bills/{bill}/photos', [BillPhotoController::class, 'edit'])->name('bills.photos.edit');
     Route::put('bills/{bill}/photos', [BillPhotoController::class, 'update'])->name('bills.photos.update');
+    Route::get('bills/{bill}/measurement', [MeasurementBillController::class, 'edit'])->name('bills.measurement.edit');
+    Route::put('bills/{bill}/measurement', [MeasurementBillController::class, 'update'])->name('bills.measurement.update');
+    Route::get('bills/{bill}/measurement/print', [MeasurementBillController::class, 'print'])->name('bills.measurement.print');
+    Route::get('bills/{bill}/measurement/pdf', [MeasurementBillController::class, 'pdf'])->name('bills.measurement.pdf');
     Route::resource('bills', BillController::class)->except(['show']);
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');
@@ -58,6 +64,10 @@ Route::middleware('auth')->group(function () {
     Route::get('estimates/{estimate}/excel', [EstimateController::class, 'excel'])->name('estimates.excel');
     Route::get('estimates/{estimate}/mail', [EstimateMailController::class, 'create'])->name('estimates.mail.create');
     Route::post('estimates/{estimate}/mail', [EstimateMailController::class, 'store'])->name('estimates.mail.store');
+    Route::get('estimates/{estimate}/measurement', [MeasurementEstimateController::class, 'edit'])->name('estimates.measurement.edit');
+    Route::put('estimates/{estimate}/measurement', [MeasurementEstimateController::class, 'update'])->name('estimates.measurement.update');
+    Route::get('estimates/{estimate}/measurement/print', [MeasurementEstimateController::class, 'print'])->name('estimates.measurement.print');
+    Route::get('estimates/{estimate}/measurement/pdf', [MeasurementEstimateController::class, 'pdf'])->name('estimates.measurement.pdf');
 
     Route::get('email-sends', [EmailSendController::class, 'index'])->name('email-sends.index');
     Route::resource('estimates', EstimateController::class)->except(['show']);
