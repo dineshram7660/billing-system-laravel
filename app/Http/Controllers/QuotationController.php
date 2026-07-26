@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\QuotationRequest;
 use App\Models\Quotation;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class QuotationController extends Controller
@@ -76,5 +78,13 @@ class QuotationController extends Controller
         $this->authorize('print', $quotation);
 
         return view('quotations.print', compact('quotation'));
+    }
+
+    public function pdf(Quotation $quotation): Response
+    {
+        $this->authorize('print', $quotation);
+
+        return Pdf::loadView('quotations.pdf', compact('quotation'))
+            ->download("quotation-{$quotation->id}.pdf");
     }
 }

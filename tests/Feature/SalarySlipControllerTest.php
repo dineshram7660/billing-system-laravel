@@ -219,4 +219,21 @@ class SalarySlipControllerTest extends TestCase
         $response->assertSee('11,700.00', false);
         $response->assertSee('11,000.00', false);
     }
+
+    public function test_pdf_endpoint_downloads_a_pdf(): void
+    {
+        $user = User::factory()->create();
+        $employee = $this->makeEmployee();
+        $slip = SalarySlip::create([
+            'employee_id' => $employee->id, 'salary_slip_month' => 'August', 'salary_slip_year' => 2026,
+            'day_work' => 20, 'over_time' => 0, 'pf_amount' => 0, 'advance_payment' => 0, 'professional_tax' => 0,
+            'salary_slip_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->get("/salary-slips/{$slip->id}/pdf");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
 }

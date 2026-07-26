@@ -14,7 +14,7 @@ the full phase plan and reasoning.
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
-| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
+| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | 🚧 In progress (PDF export done) |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
 ## Notable decisions
@@ -106,7 +106,7 @@ the full phase plan and reasoning.
   **estimate print always applies 9%+9% GST with no toggle**, matching
   `estimate_print.php` exactly (it has no `gst_bill`-equivalent check at
   all). Estimate's "email as PDF/Excel" feature (`estimate_mail.php`) is
-  deferred to Phase 5 alongside the rest of the PDF/Excel/email wiring.
+  still deferred — see the Phase 5 note below on Excel/email.
 - **Quotation module (`App\Http\Controllers\QuotationController`)** is the
   simplest of the three billing modules — the legacy `quotation` table has
   no line-items concept at all, just a single free-text `particulars`
@@ -123,10 +123,7 @@ the full phase plan and reasoning.
   bill's pre-tax total. Not backed by an Eloquent model/policy — it's a
   single legacy permission (`"GST Report"`), so authorization is a
   closure-based `Gate::define('view-gst-report', ...)` in
-  `AppServiceProvider` instead of a `{Model}Policy` class. Like the
-  per-invoice prints, this is a browser-print HTML view for now; legacy
-  generated an actual downloadable PDF via dompdf — real PDF export for
-  all of these is deferred to Phase 5.
+  `AppServiceProvider` instead of a `{Model}Policy` class.
 - **Salary Slip (`App\Http\Controllers\SalarySlipController`)** rebuilds
   `add_edit_salary_slip.php`/`salary_slip.php`/`salary_slip_print.php`/
   `ajax_get_salary_data.php`. A slip is a monthly payslip computed from
@@ -161,6 +158,18 @@ the full phase plan and reasoning.
     Sheet" sidebar item is still a placeholder) and a UI for recording
     ad-hoc advance/debit ledger entries outside of a slip's own deduction
     field.
+- **PDF export (`barryvdh/laravel-dompdf`)**: every module with a
+  browser-print view (Bill, Estimate, Quotation, GST Report, Salary Slip)
+  now also has a real downloadable PDF at a parallel `*.pdf` route (e.g.
+  `bills.pdf` alongside `bills.print`), both gated by the same `print`
+  ability/Gate as the browser view. dompdf doesn't execute the app's
+  compiled Tailwind (no Vite pipeline in a non-HTTP render), so each
+  module has a dedicated `*.pdf.blade.php` view using plain CSS classes
+  from the shared `resources/views/pdf/_styles.blade.php` partial,
+  instead of reusing the Tailwind-based `*.print.blade.php` view directly
+  — same layout/data, different markup. **Not yet wired**: Excel export
+  (`create_estimate_excel.php` and friends) and the "email as PDF/Excel"
+  feature (`estimate_mail.php`) — both still Phase 5 follow-up work.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

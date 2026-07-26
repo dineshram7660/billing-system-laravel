@@ -140,4 +140,25 @@ class BillControllerTest extends TestCase
         $response->assertSee('Two Hundred Rupees Only');
         $response->assertDontSee('CGST @');
     }
+
+    public function test_pdf_endpoint_downloads_a_pdf(): void
+    {
+        $user = User::factory()->create();
+        $bill = Bill::create(['subject' => 'PDF Bill', 'bill_date' => now()->toDateString(), 'total' => 200, 'gst_bill' => 1, 'paid' => 0]);
+        $bill->items()->create(['product_name' => 'Item', 'price' => 200, 'qty' => 1, 'total' => 200, 'sort_order' => 0]);
+
+        $response = $this->actingAs($user)->get("/bills/{$bill->id}/pdf");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
+
+    public function test_pdf_endpoint_is_forbidden_without_print_permission(): void
+    {
+        $user = User::factory()->subAdmin(['Bill', 'Add New Bill', 'Edit Bill', 'Delete Bill'])->create();
+        $bill = Bill::create(['subject' => 'PDF Bill', 'bill_date' => now()->toDateString(), 'total' => 200, 'gst_bill' => 1, 'paid' => 0]);
+
+        $this->actingAs($user)->get("/bills/{$bill->id}/pdf")->assertForbidden();
+    }
 }

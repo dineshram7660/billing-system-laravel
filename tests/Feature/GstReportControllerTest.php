@@ -75,4 +75,27 @@ class GstReportControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('No bills in this date range.');
     }
+
+    public function test_pdf_endpoint_downloads_a_pdf(): void
+    {
+        $user = User::factory()->create();
+
+        Bill::create([
+            'invoice_no' => 555004, 'subject' => 'PDF bill', 'bill_date' => '2030-01-15',
+            'total' => 1000, 'gst_bill' => 1, 'paid' => 0,
+        ]);
+
+        $response = $this->actingAs($user)->get('/gst-report/pdf?start_date=2030-01-01&end_date=2030-01-31');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
+
+    public function test_pdf_endpoint_is_forbidden_without_access(): void
+    {
+        $user = User::factory()->subAdmin(['Department'])->create();
+
+        $this->actingAs($user)->get('/gst-report/pdf?start_date=2030-01-01&end_date=2030-01-31')->assertForbidden();
+    }
 }

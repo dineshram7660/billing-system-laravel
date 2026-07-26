@@ -18,8 +18,12 @@
                 </div>
             </div>
 
-            <div class="mt-6">
+            <div class="mt-6 flex items-center gap-3">
                 <x-primary-button>View Report</x-primary-button>
+                <button type="submit" formaction="{{ route('gst-report.pdf') }}" formtarget="_self"
+                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
+                    Download PDF
+                </button>
             </div>
         </form>
     </div>

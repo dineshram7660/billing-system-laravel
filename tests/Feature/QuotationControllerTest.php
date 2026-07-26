@@ -93,4 +93,19 @@ class QuotationControllerTest extends TestCase
         $response->assertSee('Printable quotation');
         $response->assertSee('ACME Corp');
     }
+
+    public function test_pdf_endpoint_downloads_a_pdf(): void
+    {
+        $user = User::factory()->create();
+        $quotation = Quotation::create([
+            'quotation_to' => 'ACME Corp', 'subject' => 'PDF quotation',
+            'particulars' => 'Fabrication', 'unit' => 'Nos', 'total' => 500, 'bill_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->get("/quotations/{$quotation->id}/pdf");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
 }

@@ -7,9 +7,11 @@ use App\Models\Employee;
 use App\Models\EmployeeDetail;
 use App\Models\SalaryDetail;
 use App\Models\SalarySlip;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -114,6 +116,22 @@ class SalarySlipController extends Controller
     {
         $this->authorize('print', $salarySlip);
 
+        return view('salary-slips.print', $this->printData($salarySlip));
+    }
+
+    public function pdf(SalarySlip $salarySlip): Response
+    {
+        $this->authorize('print', $salarySlip);
+
+        return Pdf::loadView('salary-slips.pdf', $this->printData($salarySlip))
+            ->download("salary-slip-{$salarySlip->id}.pdf");
+    }
+
+    /**
+     * @return array{salarySlip: SalarySlip, earnings: array<string, float>, advancePaymentThisMonth: float, totalAdvanceOutstanding: float}
+     */
+    private function printData(SalarySlip $salarySlip): array
+    {
         $salarySlip->load('employee.designation');
 
         $monthStart = "{$salarySlip->salary_slip_year}-".self::MONTH_NUMBERS[$salarySlip->salary_slip_month].'-01';
@@ -130,12 +148,12 @@ class SalarySlipController extends Controller
 
         $totalAdvanceOutstanding = $this->ledgerBalance($salarySlip->employee_id, $monthEnd);
 
-        return view('salary-slips.print', [
+        return [
             'salarySlip' => $salarySlip,
             'earnings' => $earnings,
             'advancePaymentThisMonth' => $advancePaymentThisMonth,
             'totalAdvanceOutstanding' => $totalAdvanceOutstanding,
-        ]);
+        ];
     }
 
     /**

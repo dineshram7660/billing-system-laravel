@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EstimateRequest;
 use App\Models\Estimate;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -99,6 +101,22 @@ class EstimateController extends Controller
     {
         $this->authorize('print', $estimate);
 
+        return view('estimates.print', $this->printData($estimate));
+    }
+
+    public function pdf(Estimate $estimate): Response
+    {
+        $this->authorize('print', $estimate);
+
+        return Pdf::loadView('estimates.pdf', $this->printData($estimate))
+            ->download("estimate-{$estimate->id}.pdf");
+    }
+
+    /**
+     * @return array{estimate: Estimate, cgst: float, sgst: float, grandTotal: float}
+     */
+    private function printData(Estimate $estimate): array
+    {
         $estimate->load('items');
 
         // Unlike Bill, the legacy estimate_print.php has no GST toggle —
@@ -108,12 +126,12 @@ class EstimateController extends Controller
         $sgst = round((float) $estimate->total * config('company.sgst_rate') / 100);
         $grandTotal = round((float) $estimate->total + $cgst + $sgst);
 
-        return view('estimates.print', [
+        return [
             'estimate' => $estimate,
             'cgst' => $cgst,
             'sgst' => $sgst,
             'grandTotal' => $grandTotal,
-        ]);
+        ];
     }
 
     /**

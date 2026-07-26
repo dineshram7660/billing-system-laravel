@@ -55,6 +55,7 @@
                                 <div class="flex justify-end gap-3">
                                     @can('print', $salarySlip)
                                         <a href="{{ route('salary-slips.print', $salarySlip) }}" target="_blank" class="text-gray-600 hover:text-gray-900">Print</a>
+                                        <a href="{{ route('salary-slips.pdf', $salarySlip) }}" class="text-gray-600 hover:text-gray-900">PDF</a>
                                     @endcan
                                     @can('update', $salarySlip)
                                         <a href="{{ route('salary-slips.edit', $salarySlip) }}" class="text-gray-600 hover:text-gray-900">Edit</a>

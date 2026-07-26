@@ -12,8 +12,9 @@
     </style>
 </head>
 <body class="bg-white p-6 text-gray-900" onload="window.print()">
-    <div class="no-print mb-4">
+    <div class="no-print mb-4 flex gap-3">
         <button onclick="window.print()" class="rounded-md bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white">Print</button>
+        <a href="{{ route('estimates.pdf', $estimate) }}" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">Download PDF</a>
     </div>
 
     <div class="mx-auto max-w-3xl border border-gray-800">
