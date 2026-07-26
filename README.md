@@ -16,6 +16,28 @@ the full phase plan and reasoning.
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
 | 6 | Remaining modules + API layer | ✅ Done |
+| 7 | Post-roadmap audit findings (see below) | 🚧 In progress |
+
+## Phase 7: post-roadmap audit
+
+After Phase 6, every legacy `admin/*.php` file was checked one by one
+against what had actually been built, rather than trusting the sidebar
+inventory the roadmap was originally scoped from. That turned up:
+
+- **Confirmed dead, not ported**: `example2.php` (a vendored Excel-reader
+  library's demo file), `excel_reader.php` (the vendored library itself),
+  `test.php` (a raw DB-credentials script, not a page),
+  `managecalls.php` (leftover code from an unrelated "Mitmold" project —
+  references a config path and pages that don't exist in this codebase),
+  `report_department.php` (leftover from an unrelated "Hotel Namaste"
+  hotel-booking project — its own `<title>` says so).
+- **`report.php`** (a stock-report PDF generator, logged to a `report`
+  table) — intentionally **not ported**: its "department report" branch
+  calls an undefined function even in the legacy app, and the `report`
+  table shows only 4 rows of historical use ever. Flagged, not built.
+- **Real, confirmed gaps** — Expense, Income, an Employee ledger, a
+  dashboard overview widget, Bill photo upload, and an Estimate/Bill
+  "seed from measurement sheet" variant. Being worked through below.
 
 ## Notable decisions
 
@@ -311,6 +333,15 @@ the full phase plan and reasoning.
     panel's `AttendanceController` (`employee=1 AND status=1`) — the
     scope was extracted from the admin controller specifically so both
     could use it without duplicating the eligibility rule.
+- **Expense/Income** (`App\Http\Controllers\ExpenseController`/
+  `IncomeController`) are department-scoped ledgers found during the
+  Phase 7 audit — both plain `LegacyModulePolicy` CRUD, same shape as
+  Department/Product. `Income` has no search box wired up in this
+  rebuild because legacy's own `income.php` doesn't either (`$aColumns`
+  is an empty array there — the search input is rendered but never
+  actually filters anything), so an unfiltered list here matches
+  observed legacy behavior rather than "fixing" a UX gap nobody asked
+  for.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

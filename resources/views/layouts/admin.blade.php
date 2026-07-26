@@ -129,6 +129,22 @@
                     </div>
 
                     <div>
+                        <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Finance</p>
+                        <div class="space-y-0.5">
+                            @can('viewAny', \App\Models\Expense::class)
+                                <x-sidebar-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                                    Expenses
+                                </x-sidebar-link>
+                            @endcan
+                            @can('viewAny', \App\Models\Income::class)
+                                <x-sidebar-link :href="route('incomes.index')" :active="request()->routeIs('incomes.*')">
+                                    Income
+                                </x-sidebar-link>
+                            @endcan
+                        </div>
+                    </div>
+
+                    <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Other</p>
                         <div class="space-y-0.5">
                             @can('send-email')

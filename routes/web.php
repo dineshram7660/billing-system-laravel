@@ -10,7 +10,9 @@ use App\Http\Controllers\EmailSendController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\EstimateMailController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GstReportController;
+use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -75,6 +77,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
     Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
+
+    Route::resource('expenses', ExpenseController::class)->except(['show']);
+    Route::resource('incomes', IncomeController::class)->except(['show']);
 
     Route::resource('accounts', AccountController::class);
     Route::post('accounts/{account}/details', [AccountDetailController::class, 'store'])->name('accounts.details.store');
