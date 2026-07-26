@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EstimateItemsExport;
 use App\Http\Requests\EstimateRequest;
 use App\Models\Estimate;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -9,6 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EstimateController extends Controller
 {
@@ -110,6 +113,13 @@ class EstimateController extends Controller
 
         return Pdf::loadView('estimates.pdf', $this->printData($estimate))
             ->download("estimate-{$estimate->id}.pdf");
+    }
+
+    public function excel(Estimate $estimate): BinaryFileResponse
+    {
+        $this->authorize('print', $estimate);
+
+        return Excel::download(new EstimateItemsExport($estimate), "estimate-{$estimate->id}.xlsx");
     }
 
     /**
