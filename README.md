@@ -15,7 +15,7 @@ the full phase plan and reasoning.
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
-| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry, Account, Attendance done) |
+| 6 | Remaining modules + API layer | 🚧 In progress (all sidebar modules done; API layer remains) |
 
 ## Notable decisions
 
@@ -248,6 +248,20 @@ the full phase plan and reasoning.
   NULL`, so employees created via the already-shipped Employee module
   (which never sets this column) still show up correctly here — not a
   cross-module gap.
+- **Salary Sheet (`App\Http\Controllers\SalarySheetController`)**
+  rebuilds `salary_bill.php`/`gst_salary_sheet_pdf()` — a P/A attendance
+  register with pay totals across all active employees for a date range,
+  as browser HTML, PDF, and Excel (`App\Exports\SalarySheetExport`).
+  **Deliberately filters employees by `status=1` only, not
+  `employee=1 AND status=1` like Attendance** — read both legacy files
+  side by side to confirm this is a genuine, intentional difference in
+  the two modules' eligibility rules, not a copy-paste bug to "fix" into
+  consistency. The pay formula (`total_days × par_day_amount +
+  total_over_time × (par_day_amount / 8)`) matches Salary Slip's
+  `basic_pay`, but **unlike** the payslip, legacy's salary sheet does
+  **not** round each term — reproduced exactly (no rounding here either).
+  Gated by a single legacy permission (`"Salary Sheet"`) via a closure
+  Gate, same pattern as `view-gst-report`/`send-email`.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

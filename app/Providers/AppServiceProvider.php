@@ -34,5 +34,8 @@ class AppServiceProvider extends ServiceProvider
         // Same pattern as above — "Send Email" (estimate_mail.php) is a
         // single legacy permission, not tied to any one model.
         Gate::define('send-email', fn (User $user) => $user->hasLegacyPermission('Send Email'));
+
+        // Same pattern again — "Salary Sheet" (salary_bill.php).
+        Gate::define('view-salary-sheet', fn (User $user) => $user->hasLegacyPermission('Salary Sheet'));
     }
 }
