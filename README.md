@@ -342,6 +342,19 @@ inventory the roadmap was originally scoped from. That turned up:
   actually filters anything), so an unfiltered list here matches
   observed legacy behavior rather than "fixing" a UX gap nobody asked
   for.
+- **Dashboard department overview** (`App\Http\Controllers\DashboardController`)
+  rebuilds `ajax_show_overview.php`'s per-department Income vs.
+  Expense+Billed-work summary — but as a **working** version, not a
+  port. Legacy's own `index.php` never actually renders this: the
+  department-select/date-range form and `#data_show` container that
+  `ajax_show_overview.php`'s JS listens for don't exist anywhere in that
+  page's markup, so the feature was dead on arrival in the legacy app
+  (confirmed by reading `index.php` in full, not just the AJAX handler).
+  The underlying calculation is sound and useful, so this rebuilds it
+  with a real, working form on the dashboard instead of silently
+  carrying the dead JS listeners forward. Matches legacy's calc exactly:
+  bill totals for the department/range are folded into "expense"
+  alongside actual `Expense` records, not tracked separately.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
