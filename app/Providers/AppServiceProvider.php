@@ -30,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
         // legacy permission name, not the usual four-ability CRUD set —
         // so a closure-based Gate stands in for a policy class here.
         Gate::define('view-gst-report', fn (User $user) => $user->hasLegacyPermission('GST Report'));
+
+        // Same pattern as above — "Send Email" (estimate_mail.php) is a
+        // single legacy permission, not tied to any one model.
+        Gate::define('send-email', fn (User $user) => $user->hasLegacyPermission('Send Email'));
     }
 }

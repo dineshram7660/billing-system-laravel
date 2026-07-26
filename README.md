@@ -14,7 +14,7 @@ the full phase plan and reasoning.
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
-| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | 🚧 In progress (PDF + Excel export done) |
+| 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
 ## Notable decisions
@@ -182,8 +182,25 @@ the full phase plan and reasoning.
   exports' "Sr. No" column at the wrong number. Legacy's 35-character
   truncation of the work-name column (apparently a fixed-column-width
   workaround) isn't reproduced — real spreadsheet columns don't need it.
-  **Not yet wired**: the "email as PDF/Excel" feature (`estimate_mail.php`)
-  — still Phase 5 follow-up work.
+- **Estimate email (`App\Mail\EstimateMail`,
+  `App\Http\Controllers\EstimateMailController`)** rebuilds
+  `estimate_mail.php` — emails a client the estimate's PDF and Excel as
+  attachments (both generated inline via the same dompdf/Excel wiring as
+  the download routes, not read from disk) with the exact legacy canned
+  message and subject line (`"Bhavani Engineering Estimate - {subject}"`).
+  Gated by a single legacy permission (`"Send Email"`), so it's another
+  closure-based `Gate::define('send-email', ...)` rather than a policy —
+  same pattern as `view-gst-report`. `App\Http\Controllers\
+  EmailSendController` is the read-only sent-email log
+  (`email_send.php`) the legacy sidebar's "Send Email" link actually
+  points to — composing only happens from a specific estimate, there's
+  no standalone compose page. Mail is sent via the `MAIL_MAILER=log`
+  driver by default (see `.env.example`) — verified end-to-end against
+  real dev data by inspecting `storage/logs/laravel.log` for correct
+  headers/subject/body and both attachments' raw bytes, not just that
+  the HTTP request succeeded. **Not ported**: legacy's optional
+  measurement-sheet PDF attachment — that print view doesn't exist in
+  this app yet.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
