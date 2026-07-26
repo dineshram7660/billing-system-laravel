@@ -13,7 +13,7 @@ the full phase plan and reasoning.
 | 1 | Auth against the existing `admin` table, dashboard shell + sidebar | ✅ Done |
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
-| 4 | Bill, Estimate, Quotation, GST report, Salary | 🚧 In progress (Bill done) |
+| 4 | Bill, Estimate, Quotation, GST report, Salary | 🚧 In progress (Bill, Estimate, Quotation, GST report done) |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
 | 6 | Remaining modules + API layer | ⏳ Not started |
 
@@ -114,6 +114,19 @@ the full phase plan and reasoning.
   `lineItemForm` reuse here. The print template signs off as a different
   trade name (`Bhavani Fabricators`) than Bill/Estimate's `Bhavani
   Engineering` — see `config('company.quotation_entity_name')`.
+- **GST Report (`App\Http\Controllers\GstReportController`)** rebuilds
+  `gst_bill.php`/`gst_bill_pdf()` — an aggregate GST/TDS register for a
+  date range across all bills, not a per-invoice document. Reproduces the
+  legacy math exactly, including that it does **not** round per-row
+  values (unlike `BillController::print`, which does) — only the totals
+  row is a plain sum of unrounded figures, and TDS is a flat 1% of each
+  bill's pre-tax total. Not backed by an Eloquent model/policy — it's a
+  single legacy permission (`"GST Report"`), so authorization is a
+  closure-based `Gate::define('view-gst-report', ...)` in
+  `AppServiceProvider` instead of a `{Model}Policy` class. Like the
+  per-invoice prints, this is a browser-print HTML view for now; legacy
+  generated an actual downloadable PDF via dompdf — real PDF export for
+  all of these is deferred to Phase 5.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

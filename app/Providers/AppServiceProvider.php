@@ -25,5 +25,10 @@ class AppServiceProvider extends ServiceProvider
         // Doesn't follow the {Model}Policy auto-discovery convention (the
         // permission names don't match), so it's registered explicitly.
         Gate::policy(User::class, SubAdminPolicy::class);
+
+        // GST Report isn't backed by an Eloquent model — it's a single
+        // legacy permission name, not the usual four-ability CRUD set —
+        // so a closure-based Gate stands in for a policy class here.
+        Gate::define('view-gst-report', fn (User $user) => $user->hasLegacyPermission('GST Report'));
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\GstReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
@@ -37,6 +38,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
     Route::resource('quotations', QuotationController::class)->except(['show']);
+
+    Route::get('gst-report', [GstReportController::class, 'index'])->name('gst-report.index');
+    Route::get('gst-report/view', [GstReportController::class, 'show'])->name('gst-report.show');
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).

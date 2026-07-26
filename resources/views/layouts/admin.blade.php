@@ -96,7 +96,11 @@
                     <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Reports</p>
                         <div class="space-y-0.5">
-                            <x-sidebar-link :built="false">GST Report</x-sidebar-link>
+                            @can('view-gst-report')
+                                <x-sidebar-link :href="route('gst-report.index')" :active="request()->routeIs('gst-report.*')">
+                                    GST Report
+                                </x-sidebar-link>
+                            @endcan
                             <x-sidebar-link :built="false">Salary Sheet</x-sidebar-link>
                         </div>
                     </div>
