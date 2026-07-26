@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountDetailController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -72,6 +73,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('accounts', AccountController::class);
     Route::post('accounts/{account}/details', [AccountDetailController::class, 'store'])->name('accounts.details.store');
     Route::delete('accounts/{account}/details/{detail}', [AccountDetailController::class, 'destroy'])->name('accounts.details.destroy');
+
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
+    Route::post('attendance/create', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('attendance/month', [AttendanceController::class, 'month'])->name('attendance.month');
+    Route::post('attendance/month', [AttendanceController::class, 'storeMonth'])->name('attendance.month.store');
+    Route::get('attendance/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('attendance/{attendance}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('attendance/{attendance}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).
