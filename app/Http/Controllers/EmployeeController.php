@@ -38,6 +38,22 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('status', 'Employee added successfully.');
     }
 
+    public function show(Employee $employee): View
+    {
+        $this->authorize('view', $employee);
+
+        $details = $employee->details()->orderByDesc('date')->orderByDesc('id')->paginate(20);
+
+        $debit = (float) $employee->details()->where('type', 'Debit')->sum('amount');
+        $credit = (float) $employee->details()->where('type', 'Credit')->sum('amount');
+
+        return view('employees.show', [
+            'employee' => $employee,
+            'details' => $details,
+            'balance' => $debit - $credit,
+        ]);
+    }
+
     public function edit(Employee $employee): View
     {
         $this->authorize('update', $employee);
