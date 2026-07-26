@@ -11,7 +11,7 @@ the full phase plan and reasoning.
 |---|---|---|
 | 0 | Project foundations, DB connection, Eloquent models for existing tables | ✅ Done |
 | 1 | Auth against the existing `admin` table, dashboard shell + sidebar | ✅ Done |
-| 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ⏳ Not started |
+| 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ⏳ Not started |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ⏳ Not started |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
@@ -37,6 +37,40 @@ the full phase plan and reasoning.
   bugs.
 - Running against **a copy of the production database** (`bhavani_laravel`),
   not the same connection the legacy app writes to — see `.env.example`.
+- **`config/database.php`'s mysql connection disables strict mode** (`strict`
+  => false + `MYSQL_ATTR_INIT_COMMAND` clearing sql_mode). Several legacy
+  columns (e.g. `employee.username`/`password`) are NOT NULL with no default
+  and the legacy forms never set them — they only ever worked because the
+  original app's MySQL config was lenient. Revisit once Phase 3 gives these
+  columns real defaults/nullability instead of relying on this.
+- **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
+  the legacy app checks four permission names per module (e.g. `"Department"`,
+  `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
+  `sub_access` table), and a concrete policy just declares `$module` to get
+  all four abilities. Sub Admin doesn't fit that pattern (`"Sub Admin Edit"`
+  puts the module name first) so it has its own `SubAdminPolicy`, registered
+  manually in `AppServiceProvider` since it doesn't follow Laravel's
+  `{Model}Policy` auto-discovery naming either.
+
+## Testing
+
+Feature tests run against `bhavani_laravel_testing`, a real copy of the
+legacy schema — see `phpunit.xml` and `.env.testing.example` for why (in
+short: the app's models map onto tables that only exist via the legacy DB
+dump, not Laravel migrations, so blank sqlite has nothing to test against).
+
+To refresh that database after pulling schema-affecting changes, **drop and
+recreate it** rather than re-importing over the top — a plain re-import
+resets tables like `admin` back to the legacy dump's shape without touching
+Laravel's `migrations` tracking table, which then believes migrations
+adding columns to those tables are already applied when they're not:
+
+```bash
+mysql -u root -p -e "DROP DATABASE IF EXISTS bhavani_laravel_testing; CREATE DATABASE bhavani_laravel_testing;"
+mysqldump -u root -p bhavani | mysql -u root -p bhavani_laravel_testing
+php artisan migrate --force --env=testing
+php artisan test
+```
 
 ## Local setup
 

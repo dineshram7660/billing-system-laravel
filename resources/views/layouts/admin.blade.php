@@ -44,11 +44,31 @@
                     <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Master data</p>
                         <div class="space-y-0.5">
-                            <x-sidebar-link :built="false">Sub Admin</x-sidebar-link>
-                            <x-sidebar-link :built="false">Department</x-sidebar-link>
-                            <x-sidebar-link :built="false">Designation</x-sidebar-link>
-                            <x-sidebar-link :built="false">Employee</x-sidebar-link>
-                            <x-sidebar-link :built="false">Product</x-sidebar-link>
+                            @can('viewAny', \App\Models\User::class)
+                                <x-sidebar-link :href="route('sub-admins.index')" :active="request()->routeIs('sub-admins.*')">
+                                    Sub Admin
+                                </x-sidebar-link>
+                            @endcan
+                            @can('viewAny', \App\Models\Department::class)
+                                <x-sidebar-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
+                                    Department
+                                </x-sidebar-link>
+                            @endcan
+                            @can('viewAny', \App\Models\Designation::class)
+                                <x-sidebar-link :href="route('designations.index')" :active="request()->routeIs('designations.*')">
+                                    Designation
+                                </x-sidebar-link>
+                            @endcan
+                            @can('viewAny', \App\Models\Employee::class)
+                                <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')">
+                                    Employee
+                                </x-sidebar-link>
+                            @endcan
+                            @can('viewAny', \App\Models\Product::class)
+                                <x-sidebar-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                                    Product
+                                </x-sidebar-link>
+                            @endcan
                         </div>
                     </div>
 

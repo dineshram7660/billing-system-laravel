@@ -57,10 +57,21 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => true,
+            // Several legacy tables (e.g. employee.username/password) are
+            // NOT NULL with no default, and the legacy forms this app is
+            // being ported from never set them — they only ever worked
+            // under MySQL's older, lenient default sql_mode. `strict` =>
+            // false stops Laravel adding its own strict modes on top of
+            // that; MYSQL_ATTR_INIT_COMMAND below clears the session mode
+            // outright so the server's own default (which may itself be
+            // strict, as it is here) doesn't apply either. Revisit once
+            // the roadmap's Phase 4 (normalize the data model) reaches
+            // these columns and gives them real defaults/nullability.
+            'strict' => false,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                \PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode=''",
             ]) : [],
         ],
 
