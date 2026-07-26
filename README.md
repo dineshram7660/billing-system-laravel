@@ -15,7 +15,7 @@ the full phase plan and reasoning.
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
-| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry, Account done) |
+| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry, Account, Attendance done) |
 
 ## Notable decisions
 
@@ -227,6 +227,27 @@ the full phase plan and reasoning.
   permissions. **Not included** (follow-up work): `rojmed.php`, an
   aggregate ledger register across all accounts — analogous to the GST
   Report being separate from per-invoice Bill printing.
+- **Attendance (`App\Http\Controllers\AttendanceController`)** rebuilds
+  `attendance.php`/`edit_attendance.php`/`add_attendance.php`/
+  `add_admin_attendance.php`/`add_attendance_month.php`. Legacy's
+  `add_attendance.php` (today only) and `add_admin_attendance.php`
+  (any date, otherwise byte-for-byte identical — both gated by the same
+  `"Add Attendance"` permission) are merged into one `create()`/`store()`
+  pair with a date field that defaults to today but is editable, rather
+  than porting two near-duplicate pages. The month grid
+  (`month()`/`storeMonth()`) reproduces the legacy layout exactly: one
+  checkbox row + one overtime-input row per employee, one column per day
+  of the selected month — every day in the month is written on save
+  (defaulting to absent/0 for any day left blank), matching legacy's
+  "always fill the whole month" semantics rather than only writing the
+  cells that were touched. `App\Policies\AttendancePolicy` doesn't
+  extend `LegacyModulePolicy`: this is the one module where the create
+  permission is `"Add Attendance"`, not the usual `"Add New {module}"`.
+  Confirmed `employee.employee` (the eligibility flag this module
+  filters employees by) defaults to `1` at the DB level and is `NOT
+  NULL`, so employees created via the already-shipped Employee module
+  (which never sets this column) still show up correctly here — not a
+  cross-module gap.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

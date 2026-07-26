@@ -108,9 +108,19 @@
                     <div>
                         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Attendance</p>
                         <div class="space-y-0.5">
-                            <x-sidebar-link :built="false">Attendance</x-sidebar-link>
-                            <x-sidebar-link :built="false">Add Attendance</x-sidebar-link>
-                            <x-sidebar-link :built="false">Add Attendance (All Month)</x-sidebar-link>
+                            @can('viewAny', \App\Models\Attendance::class)
+                                <x-sidebar-link :href="route('attendance.index')" :active="request()->routeIs('attendance.index')">
+                                    Attendance
+                                </x-sidebar-link>
+                            @endcan
+                            @can('create', \App\Models\Attendance::class)
+                                <x-sidebar-link :href="route('attendance.create')" :active="request()->routeIs('attendance.create')">
+                                    Add Attendance
+                                </x-sidebar-link>
+                                <x-sidebar-link :href="route('attendance.month')" :active="request()->routeIs('attendance.month')">
+                                    Add Attendance (All Month)
+                                </x-sidebar-link>
+                            @endcan
                         </div>
                     </div>
 
