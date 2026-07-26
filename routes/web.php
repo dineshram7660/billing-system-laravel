@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountDetailController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BillController;
+use App\Http\Controllers\BillPhotoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -45,6 +46,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
     Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
+    Route::get('bills/{bill}/photos', [BillPhotoController::class, 'edit'])->name('bills.photos.edit');
+    Route::put('bills/{bill}/photos', [BillPhotoController::class, 'update'])->name('bills.photos.update');
     Route::resource('bills', BillController::class)->except(['show']);
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');

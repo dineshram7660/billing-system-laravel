@@ -355,6 +355,16 @@ inventory the roadmap was originally scoped from. That turned up:
   carrying the dead JS listeners forward. Matches legacy's calc exactly:
   bill totals for the department/range are folded into "expense"
   alongside actual `Expense` records, not tracked separately.
+- **Bill photos** (`App\Http\Controllers\BillPhotoController`) rebuilds
+  `add_edit_photo.php`'s multi-photo attachment feature, still stored
+  comma-separated in `bill.photo` (not worth a new table for what's
+  always been a flat list). Uses Laravel's storage disk instead of the
+  legacy hand-rolled random-filename generator (`upload_image()`), so
+  `photo` here holds storage paths (`bill-photos/xyz.jpg`) rather than
+  legacy's bare filenames. **Pre-existing legacy photo values will 404**
+  (broken image icon, not a crash) — this app only ever had a copy of
+  the database, never the legacy upload directory, so those files were
+  never in scope to migrate; nothing to fix on this end.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
