@@ -90,10 +90,10 @@ the full phase plan and reasoning.
   - Company-wide constants that were hardcoded into the legacy print
     template (GSTIN, bank details, MSME registration) now live in
     `config/company.php`.
-  - The GST register/TDS PDF report (legacy `gst_bill.php`, an aggregate
-    date-range export, not per-invoice) and the "seed a bill from a
-    measurement sheet" fallback are **not ported yet** — tracked as
-    follow-up work under Phase 4/5.
+  - The GST register/TDS report is a separate module — see
+    `GstReportController` below. The "seed a bill from a measurement
+    sheet" fallback (and the measurement-sheet print view/PDF it depends
+    on) is **not ported** — still open, no current follow-up planned.
 - **Estimate module (`App\Http\Controllers\EstimateController`)** mirrors
   the Bill module (same `lineItemForm` Alpine component, same
   server-side total recomputation) but is deliberately simpler because
@@ -105,8 +105,10 @@ the full phase plan and reasoning.
   anywhere — so they're intentionally left off the form. Unlike Bill,
   **estimate print always applies 9%+9% GST with no toggle**, matching
   `estimate_print.php` exactly (it has no `gst_bill`-equivalent check at
-  all). Estimate's "email as PDF/Excel" feature (`estimate_mail.php`) is
-  still deferred — see the Phase 5 note below on Excel/email.
+  all). Estimate's "email as PDF/Excel" feature is built — see
+  `App\Mail\EstimateMail` below; the one piece of `estimate_mail.php` not
+  carried forward is its optional measurement-sheet PDF attachment,
+  since that print view doesn't exist in this app.
 - **Quotation module (`App\Http\Controllers\QuotationController`)** is the
   simplest of the three billing modules — the legacy `quotation` table has
   no line-items concept at all, just a single free-text `particulars`
@@ -153,11 +155,11 @@ the full phase plan and reasoning.
     essential list/add/delete subset of `view_salary.php`/
     `add_edit_salary.php` — editing an existing rate isn't ported (legacy
     rarely uses it differently from adding a new dated row).
-  - **Not included** (follow-up work): the aggregate "Salary Sheet"
-    payroll register (`salary_bill.php`, the `salary_bill.php`/"Salary
-    Sheet" sidebar item is still a placeholder) and a UI for recording
-    ad-hoc advance/debit ledger entries outside of a slip's own deduction
-    field.
+  - The aggregate "Salary Sheet" payroll register is a separate module —
+    see `SalarySheetController` below. **Not included**: a UI for
+    recording ad-hoc advance/debit `employee_details` ledger entries
+    outside of a slip's own deduction field — still open, no current
+    follow-up planned.
 - **PDF export (`barryvdh/laravel-dompdf`)**: every module with a
   browser-print view (Bill, Estimate, Quotation, GST Report, Salary Slip)
   now also has a real downloadable PDF at a parallel `*.pdf` route (e.g.
