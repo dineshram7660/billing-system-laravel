@@ -15,7 +15,7 @@ the full phase plan and reasoning.
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
-| 6 | Remaining modules + API layer | 🚧 In progress (all sidebar modules done; API layer remains) |
+| 6 | Remaining modules + API layer | ✅ Done |
 
 ## Notable decisions
 
@@ -262,6 +262,53 @@ the full phase plan and reasoning.
   **not** round each term — reproduced exactly (no rounding here either).
   Gated by a single legacy permission (`"Salary Sheet"`) via a closure
   Gate, same pattern as `view-gst-report`/`send-email`.
+- **API layer (`routes/api.php`, `App\Http\Controllers\Api\*`,
+  Laravel Sanctum)**: the original migration roadmap described this as
+  "the 61-file custom REST dispatcher" — that estimate turned out to be
+  wrong, and it mattered enough to verify before writing any code.
+  Investigated the legacy `api/` directory directly rather than trusting
+  the roadmap's file count: stripping out a vendored PHPMailer copy and
+  an entirely unrelated leftover project file
+  (`api/rest/api_bbb.php` — sales/order/notification functions from a
+  different client's app, never wired into this app's routing) leaves
+  **four real endpoints** in `api/rest/api.php`: `login`, `logout`,
+  `get_attendance`, `save_attendance` — a narrow mobile
+  attendance-marking API, not a general billing/estimate/employee CRUD
+  layer. Its own server log
+  (`api/rest/error_log`) shows consistent real traffic only from
+  Jun 2021–Jan 2022, then nothing but one failed-connection probe in
+  Jan 2024 — no in-repo consumer, no documentation, and no evidence of
+  current use. `api/employee.php` (a separate, non-dispatched script
+  dumping the full employee list with **zero authentication**) is a
+  legacy vulnerability, not a feature — intentionally not carried
+  forward.
+  - Rebuilt the real four-endpoint surface — `POST /api/login`,
+    `POST /api/logout`, `GET /api/attendance`, `POST /api/attendance` —
+    behind **Sanctum bearer tokens**, since legacy's `login` returned no
+    token/session artifact at all and every subsequent call
+    (`get_attendance`/`save_attendance`/`logout`) blindly trusted a
+    client-supplied `user_id` with no server-side verification. This is
+    a fresh, secure design rather than a byte-compatible port — there
+    was no live client to preserve exact compatibility for.
+  - `Api\AuthController::login()` reuses `LoginRequest::resolveUser()`
+    (the same MD5-upgrade-shim/rate-limiting logic the web login uses)
+    rather than duplicating it — **but not** `LoginRequest::authenticate()`,
+    which additionally calls `Auth::login()` to start a web session
+    guard login. That's the right behavior for the Blade login form and
+    the wrong one for a stateless token API — reusing it as-is caused a
+    real bug, caught by an automated test: a Sanctum-authenticated
+    request would intermittently resolve as a `TransientToken` (no
+    `delete()` method) instead of a real revocable database token,
+    because the session guard was quietly also being logged in
+    underneath the API call. Fixed by splitting `LoginRequest` into
+    `resolveUser()` (credential verification only, shared by both flows)
+    and `authenticate()` (web-only, calls `Auth::login()` on top of
+    `resolveUser()`).
+  - `Api\AttendanceController` shares the same
+    `Employee::scopeEligibleForAttendance()` query scope as the admin
+    panel's `AttendanceController` (`employee=1 AND status=1`) — the
+    scope was extracted from the admin controller specifically so both
+    could use it without duplicating the eligibility rule.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
