@@ -36,19 +36,24 @@ Route::middleware('auth')->group(function () {
     Route::delete('employees/{employee}/salary-details/{salary_detail}', [SalaryDetailController::class, 'destroy'])->name('employees.salary-details.destroy');
 
     Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
+    Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
     Route::resource('bills', BillController::class)->except(['show']);
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');
+    Route::get('estimates/{estimate}/pdf', [EstimateController::class, 'pdf'])->name('estimates.pdf');
     Route::resource('estimates', EstimateController::class)->except(['show']);
 
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
+    Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'pdf'])->name('quotations.pdf');
     Route::resource('quotations', QuotationController::class)->except(['show']);
 
     Route::get('gst-report', [GstReportController::class, 'index'])->name('gst-report.index');
     Route::get('gst-report/view', [GstReportController::class, 'show'])->name('gst-report.show');
+    Route::get('gst-report/pdf', [GstReportController::class, 'pdf'])->name('gst-report.pdf');
 
     Route::get('salary-slips/data', [SalarySlipController::class, 'data'])->name('salary-slips.data');
     Route::get('salary-slips/{salary_slip}/print', [SalarySlipController::class, 'print'])->name('salary-slips.print');
+    Route::get('salary-slips/{salary_slip}/pdf', [SalarySlipController::class, 'pdf'])->name('salary-slips.pdf');
     Route::resource('salary-slips', SalarySlipController::class)->except(['show']);
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a

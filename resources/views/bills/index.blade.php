@@ -71,6 +71,7 @@
                                 <div class="flex justify-end gap-3">
                                     @can('print', $bill)
                                         <a href="{{ route('bills.print', $bill) }}" target="_blank" class="text-gray-600 hover:text-gray-900">Print</a>
+                                        <a href="{{ route('bills.pdf', $bill) }}" class="text-gray-600 hover:text-gray-900">PDF</a>
                                     @endcan
                                     @can('update', $bill)
                                         <a href="{{ route('bills.edit', $bill) }}" class="text-gray-600 hover:text-gray-900">Edit</a>

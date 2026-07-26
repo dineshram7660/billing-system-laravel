@@ -53,6 +53,7 @@
                                 <div class="flex justify-end gap-3">
                                     @can('print', $quotation)
                                         <a href="{{ route('quotations.print', $quotation) }}" target="_blank" class="text-gray-600 hover:text-gray-900">Print</a>
+                                        <a href="{{ route('quotations.pdf', $quotation) }}" class="text-gray-600 hover:text-gray-900">PDF</a>
                                     @endcan
                                     @can('update', $quotation)
                                         <a href="{{ route('quotations.edit', $quotation) }}" class="text-gray-600 hover:text-gray-900">Edit</a>

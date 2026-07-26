@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BillRequest;
 use App\Models\Bill;
 use App\Models\Department;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -140,18 +142,34 @@ class BillController extends Controller
     {
         $this->authorize('print', $bill);
 
+        return view('bills.print', $this->printData($bill));
+    }
+
+    public function pdf(Bill $bill): Response
+    {
+        $this->authorize('print', $bill);
+
+        return Pdf::loadView('bills.pdf', $this->printData($bill))
+            ->download("invoice-{$bill->invoice_no}.pdf");
+    }
+
+    /**
+     * @return array{bill: Bill, cgst: float, sgst: float, grandTotal: float}
+     */
+    private function printData(Bill $bill): array
+    {
         $bill->load(['items', 'department']);
 
         $cgst = $bill->gst_bill ? round((float) $bill->total * config('company.cgst_rate') / 100) : 0;
         $sgst = $bill->gst_bill ? round((float) $bill->total * config('company.sgst_rate') / 100) : 0;
         $grandTotal = round((float) $bill->total + $cgst + $sgst);
 
-        return view('bills.print', [
+        return [
             'bill' => $bill,
             'cgst' => $cgst,
             'sgst' => $sgst,
             'grandTotal' => $grandTotal,
-        ]);
+        ];
     }
 
     /**
