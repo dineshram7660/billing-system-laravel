@@ -85,7 +85,11 @@
                                     Estimate
                                 </x-sidebar-link>
                             @endcan
-                            <x-sidebar-link :built="false">Quotation</x-sidebar-link>
+                            @can('viewAny', \App\Models\Quotation::class)
+                                <x-sidebar-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">
+                                    Quotation
+                                </x-sidebar-link>
+                            @endcan
                         </div>
                     </div>
 

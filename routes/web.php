@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SubAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');
     Route::resource('estimates', EstimateController::class)->except(['show']);
+
+    Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
+    Route::resource('quotations', QuotationController::class)->except(['show']);
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).

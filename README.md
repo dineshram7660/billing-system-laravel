@@ -107,6 +107,13 @@ the full phase plan and reasoning.
   `estimate_print.php` exactly (it has no `gst_bill`-equivalent check at
   all). Estimate's "email as PDF/Excel" feature (`estimate_mail.php`) is
   deferred to Phase 5 alongside the rest of the PDF/Excel/email wiring.
+- **Quotation module (`App\Http\Controllers\QuotationController`)** is the
+  simplest of the three billing modules — the legacy `quotation` table has
+  no line-items concept at all, just a single free-text `particulars`
+  field plus `unit`/`total`, so there's no `quotation_items` table and no
+  `lineItemForm` reuse here. The print template signs off as a different
+  trade name (`Bhavani Fabricators`) than Bill/Estimate's `Bhavani
+  Engineering` — see `config('company.quotation_entity_name')`.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

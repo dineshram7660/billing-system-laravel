@@ -15,6 +15,10 @@ return [
     'ifsc_code' => 'PUNB0047520',
     'msme_certificate' => 'UDYAM-GJ-30-0000031',
 
+    // The legacy quotation print template signs off as a different trade
+    // name than the invoice/estimate templates — see quotation_print.php.
+    'quotation_entity_name' => 'Bhavani Fabricators',
+
     'cgst_rate' => 9,
     'sgst_rate' => 9,
 ];
