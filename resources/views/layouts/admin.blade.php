@@ -122,7 +122,11 @@
                                     Send Email
                                 </x-sidebar-link>
                             @endcan
-                            <x-sidebar-link :built="false">Inquiry</x-sidebar-link>
+                            @can('viewAny', \App\Models\Inquiry::class)
+                                <x-sidebar-link :href="route('inquiries.index')" :active="request()->routeIs('inquiries.*')">
+                                    Inquiry
+                                </x-sidebar-link>
+                            @endcan
                             <x-sidebar-link :built="false">Account</x-sidebar-link>
                             @can('viewAny', \App\Models\SalarySlip::class)
                                 <x-sidebar-link :href="route('salary-slips.index')" :active="request()->routeIs('salary-slips.*')">

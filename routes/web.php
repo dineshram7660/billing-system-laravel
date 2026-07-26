@@ -8,6 +8,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\EstimateMailController;
 use App\Http\Controllers\GstReportController;
+use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
@@ -62,6 +63,9 @@ Route::middleware('auth')->group(function () {
     Route::get('salary-slips/{salary_slip}/print', [SalarySlipController::class, 'print'])->name('salary-slips.print');
     Route::get('salary-slips/{salary_slip}/pdf', [SalarySlipController::class, 'pdf'])->name('salary-slips.pdf');
     Route::resource('salary-slips', SalarySlipController::class)->except(['show']);
+
+    Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
+    Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
 
     // Not Route::resource: "sub-admins" would imply implicit binding to a
     // SubAdmin model, but this manages App\Models\User (the admin table).

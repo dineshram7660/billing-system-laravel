@@ -15,7 +15,7 @@ the full phase plan and reasoning.
 | 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
-| 6 | Remaining modules + API layer | ⏳ Not started |
+| 6 | Remaining modules + API layer | 🚧 In progress (Inquiry done) |
 
 ## Notable decisions
 
@@ -201,6 +201,14 @@ the full phase plan and reasoning.
   the HTTP request succeeded. **Not ported**: legacy's optional
   measurement-sheet PDF attachment — that print view doesn't exist in
   this app yet.
+- **Inquiry (`App\Http\Controllers\InquiryController`)** is read-only
+  list + delete only — legacy has no add/edit page for the `inquery`
+  table (submissions come from a public contact form, not the admin);
+  see `App\Policies\InquiryPolicy` for why it doesn't extend
+  `LegacyModulePolicy` (no `create`/`update` abilities exist to grant).
+  Legacy's table name typo (`inquery`, not `inquiry`) is kept as the
+  literal DB table name on the `Inquiry` model — only the model/class/
+  route names are spelled correctly.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
