@@ -45,6 +45,9 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-3">
+                                    @can('view', $employee)
+                                        <a href="{{ route('employees.show', $employee) }}" class="text-gray-600 hover:text-gray-900">Ledger</a>
+                                    @endcan
                                     @can('update', $employee)
                                         <a href="{{ route('employees.edit', $employee) }}" class="text-gray-600 hover:text-gray-900">Edit</a>
                                     @endcan

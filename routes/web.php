@@ -10,6 +10,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\EmailSendController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeDetailController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\EstimateMailController;
 use App\Http\Controllers\ExpenseController;
@@ -39,10 +40,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('designations', DesignationController::class)->except(['show']);
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
     Route::resource('products', ProductController::class)->except(['show']);
-    Route::resource('employees', EmployeeController::class)->except(['show']);
+    Route::resource('employees', EmployeeController::class);
     Route::get('employees/{employee}/salary-details', [SalaryDetailController::class, 'index'])->name('employees.salary-details.index');
     Route::post('employees/{employee}/salary-details', [SalaryDetailController::class, 'store'])->name('employees.salary-details.store');
     Route::delete('employees/{employee}/salary-details/{salary_detail}', [SalaryDetailController::class, 'destroy'])->name('employees.salary-details.destroy');
+    Route::post('employees/{employee}/details', [EmployeeDetailController::class, 'store'])->name('employees.details.store');
+    Route::delete('employees/{employee}/details/{detail}', [EmployeeDetailController::class, 'destroy'])->name('employees.details.destroy');
 
     Route::get('bills/{bill}/print', [BillController::class, 'print'])->name('bills.print');
     Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');

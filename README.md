@@ -365,6 +365,19 @@ inventory the roadmap was originally scoped from. That turned up:
   (broken image icon, not a crash) — this app only ever had a copy of
   the database, never the legacy upload directory, so those files were
   never in scope to migrate; nothing to fix on this end.
+- **Employee ledger** (`App\Http\Controllers\EmployeeController::show()`,
+  `App\Http\Controllers\EmployeeDetailController`) rebuilds
+  `view_employee.php`/`add_edit_c_d_employee.php` — a Credit/Debit
+  transaction ledger per employee, structurally identical to the Account
+  ledger (same `Debit − Credit = balance` convention, same nested
+  store/destroy controller shape). `EmployeePolicy::view()` overrides the
+  `LegacyModulePolicy` default the same way `AccountPolicy::view()`
+  does, for the same reason: legacy splits list access (`"Employee"`)
+  from viewing one employee's ledger (`"View Employee"`) into two
+  separate permissions. This is also the ledger that
+  `SalarySlipController` writes Credit rows into for a slip's advance
+  deduction (see the Salary Slip notes above) — those rows now show up
+  here too, alongside any ad-hoc entries added directly.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
