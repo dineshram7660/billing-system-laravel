@@ -191,6 +191,6 @@ class AttendanceController extends Controller
 
     private function eligibleEmployees()
     {
-        return Employee::where('employee', 1)->where('status', 1)->orderBy('employee_name')->get();
+        return Employee::eligibleForAttendance()->orderBy('employee_name')->get();
     }
 }

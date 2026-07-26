@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,5 +43,18 @@ class Employee extends Model
     public function salarySlips(): HasMany
     {
         return $this->hasMany(SalarySlip::class, 'employee_id');
+    }
+
+    /**
+     * The attendance-eligible subset — used by AttendanceController and
+     * the API attendance endpoints (see add_attendance.php /
+     * api/rest/api.php::get_attendance() in the legacy app). Deliberately
+     * NOT used by SalarySheetController, which filters by `status=1`
+     * only — a genuine, confirmed difference between the two modules,
+     * not an inconsistency to unify.
+     */
+    public function scopeEligibleForAttendance(Builder $query): Builder
+    {
+        return $query->where('employee', 1)->where('status', 1);
     }
 }
