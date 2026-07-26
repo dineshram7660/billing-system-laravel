@@ -94,6 +94,19 @@ the full phase plan and reasoning.
     date-range export, not per-invoice) and the "seed a bill from a
     measurement sheet" fallback are **not ported yet** — tracked as
     follow-up work under Phase 4/5.
+- **Estimate module (`App\Http\Controllers\EstimateController`)** mirrors
+  the Bill module (same `lineItemForm` Alpine component, same
+  server-side total recomputation) but is deliberately simpler because
+  the legacy `estimate` table/forms are: no department, GST toggle,
+  payment fields, ref no, or invoice numbering exist for estimates —
+  `subject`, `bill_date`, and line items are the whole editable surface.
+  Two columns on the `estimate` table (`ast_desc`, `address`) are dead —
+  grepped the entire legacy `admin/` tree and neither is read or written
+  anywhere — so they're intentionally left off the form. Unlike Bill,
+  **estimate print always applies 9%+9% GST with no toggle**, matching
+  `estimate_print.php` exactly (it has no `gst_bill`-equivalent check at
+  all). Estimate's "email as PDF/Excel" feature (`estimate_mail.php`) is
+  deferred to Phase 5 alongside the rest of the PDF/Excel/email wiring.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the
