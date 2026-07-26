@@ -16,7 +16,7 @@ the full phase plan and reasoning.
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ✅ Done |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ✅ Done |
 | 6 | Remaining modules + API layer | ✅ Done |
-| 7 | Post-roadmap audit findings (see below) | 🚧 In progress |
+| 7 | Post-roadmap audit findings (see below) | ✅ Done |
 
 ## Phase 7: post-roadmap audit
 
@@ -35,9 +35,10 @@ inventory the roadmap was originally scoped from. That turned up:
   table) — intentionally **not ported**: its "department report" branch
   calls an undefined function even in the legacy app, and the `report`
   table shows only 4 rows of historical use ever. Flagged, not built.
-- **Real, confirmed gaps** — Expense, Income, an Employee ledger, a
-  dashboard overview widget, Bill photo upload, and an Estimate/Bill
-  "seed from measurement sheet" variant. Being worked through below.
+- **Real, confirmed gaps, all now built** — Expense, Income, an Employee
+  ledger, a dashboard overview widget, Bill photo upload, and the Bill/
+  Estimate measurement sheet editors. See the relevant bullets below for
+  each.
 
 ## Notable decisions
 
@@ -378,6 +379,36 @@ inventory the roadmap was originally scoped from. That turned up:
   `SalarySlipController` writes Credit rows into for a slip's advance
   deduction (see the Salary Slip notes above) — those rows now show up
   here too, alongside any ad-hoc entries added directly.
+- **Measurement sheet editors** (`App\Http\Controllers\
+  MeasurementBillController`/`MeasurementEstimateController`) rebuild
+  `add_edit_bill_measurement.php`/`add_edit_estimate_measurement.php` +
+  their print views — the most structurally complex remaining legacy
+  feature (confirmed by diffing the two files: identical except
+  `b_id`/`e_id`). A measurement sheet is nested two levels deep: a list
+  of product "groups", each with its own list of length×breadth
+  measurement "lines" — edited via a new shared Alpine component
+  (`measurementForm` in `resources/js/app.js`).
+  - **Builds directly against the already-normalized
+    `measurement_bill_items`/`measurement_bill_item_lines` tables**
+    (populated back in Phase 3 by `ImportLegacyMeasurements`) instead of
+    round-tripping through the legacy `[#]`/`[@]`/`[(@)]`-delimited
+    `measurement_bill.product` blob — consistent with how `bill_items`/
+    `estimate_items` already work; new features never write the
+    delimited format.
+  - The quantity formula (`no × length × breath × unit`, blank fields
+    default to 1) and group-total formula (sum of that group's line
+    quantities) reproduce legacy's `count_total_bill()` JS exactly.
+  - `"Edit Measurement"` is a single permission shared by **both** the
+    Bill and Estimate editors in legacy (not two separate per-module
+    permissions) — `Gate::define('edit-measurement', ...)` reflects that
+    directly rather than splitting it artificially. Printing does have
+    separate permissions per module (`"Print Bill Measurement"`/
+    `"Print Estimate Measurement"`), added as a `printMeasurement()`
+    ability on `BillPolicy`/`EstimatePolicy`.
+  - **Not ported**: the "Copy Measurement" convenience on the Bill
+    editor that appends an Estimate's measurement sheet onto the Bill's
+    — a nice-to-have layered on top of the core editor, not the editor
+    itself.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

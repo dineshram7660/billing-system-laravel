@@ -13,4 +13,9 @@ class BillPolicy extends LegacyModulePolicy
     {
         return $user->hasLegacyPermission('Print Bill');
     }
+
+    public function printMeasurement(User $user, Bill $bill): bool
+    {
+        return $user->hasLegacyPermission('Print Bill Measurement');
+    }
 }

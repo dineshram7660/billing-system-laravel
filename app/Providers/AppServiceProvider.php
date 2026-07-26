@@ -37,5 +37,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Same pattern again — "Salary Sheet" (salary_bill.php).
         Gate::define('view-salary-sheet', fn (User $user) => $user->hasLegacyPermission('Salary Sheet'));
+
+        // "Edit Measurement" is shared by both the Bill and Estimate
+        // measurement-sheet editors in legacy (add_edit_bill_measurement.php
+        // / add_edit_estimate_measurement.php both check this exact
+        // permission name, not two separate per-module ones).
+        Gate::define('edit-measurement', fn (User $user) => $user->hasLegacyPermission('Edit Measurement'));
     }
 }
