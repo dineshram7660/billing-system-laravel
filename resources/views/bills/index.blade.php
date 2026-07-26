@@ -75,6 +75,7 @@
                                     @endcan
                                     @can('update', $bill)
                                         <a href="{{ route('bills.edit', $bill) }}" class="text-gray-600 hover:text-gray-900">Edit</a>
+                                        <a href="{{ route('bills.photos.edit', $bill) }}" class="text-gray-600 hover:text-gray-900">Photos</a>
                                     @endcan
                                     @can('delete', $bill)
                                         <form method="POST" action="{{ route('bills.destroy', $bill) }}"
