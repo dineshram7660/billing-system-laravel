@@ -12,7 +12,7 @@ the full phase plan and reasoning.
 | 0 | Project foundations, DB connection, Eloquent models for existing tables | ✅ Done |
 | 1 | Auth against the existing `admin` table, dashboard shell + sidebar | ✅ Done |
 | 2 | Master-data CRUD (Department, Designation, Employee, Product, Sub Admin) | ✅ Done |
-| 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ⏳ Not started |
+| 3 | Normalize `bill`/`estimate` line items out of delimited text columns | ✅ Done |
 | 4 | Bill, Estimate, Quotation, GST report, Salary | ⏳ Not started |
 | 5 | PDF/Excel/email (dompdf, PhpSpreadsheet, Mail) | ⏳ Not started |
 | 6 | Remaining modules + API layer | ⏳ Not started |
@@ -43,6 +43,21 @@ the full phase plan and reasoning.
   and the legacy forms never set them — they only ever worked because the
   original app's MySQL config was lenient. Revisit once Phase 3 gives these
   columns real defaults/nullability instead of relying on this.
+- **Line items and measurements are normalized out of delimited text
+  columns.** `bill.product`/`estimate.product` (an `"[#]"`/`"[@]"`-delimited
+  blob) is backfilled into `bill_items`/`estimate_items` by
+  `App\Console\Commands\ImportLegacyLineItems`;
+  `measurement_bill.product`/`measurement_estimate.product` (an
+  additionally `"[(@)]"`-nested blob — one `"[@]"` slot per product, further
+  split into per-line values) is backfilled into
+  `measurement_bill_items`/`measurement_estimate_items` +
+  `..._item_lines` by `App\Console\Commands\ImportLegacyMeasurements`. Both
+  commands are safe to re-run (`--fresh` truncates first, otherwise each
+  source row's items are replaced) and never guess at malformed or
+  orphaned rows — those get logged to `legacy_import_issues` instead of
+  silently corrupting data. The original `product` columns are left
+  untouched as an audit trail; new features should read `items()` /
+  `measurementItems()` on `Bill`/`Estimate`, not `product` directly.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

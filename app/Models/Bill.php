@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * `product` is still the legacy [#]/[@]-delimited text blob at this stage
- * of the migration (see the roadmap's Phase 4: normalize the data model).
- * Don't build new features against it directly — it gets replaced by a
- * real billItems() relation once that migration lands.
+ * `product` is the legacy [#]/[@]-delimited text blob — kept as a
+ * read-only fallback/audit trail, but don't build new features against it.
+ * Use items() instead, backfilled from this column by
+ * App\Console\Commands\ImportLegacyLineItems. A handful of bills (~4%)
+ * have malformed product data that couldn't be backfilled automatically —
+ * see the legacy_import_issues table — so items() can legitimately be
+ * empty for a bill that has a non-trivial `product` value; check there
+ * before assuming a bug.
  */
 #[Fillable([
     'invoice_no', 'subject', 'gst_no', 'ref_no', 'ref_date', 'product',
@@ -40,13 +44,27 @@ class Bill extends Model
         return $this->belongsTo(Department::class, 'd_id');
     }
 
+    /**
+     * @deprecated Raw legacy row (still the delimited "product" string).
+     *  Use measurementItems() instead.
+     */
     public function measurements(): HasMany
     {
         return $this->hasMany(MeasurementBill::class, 'b_id');
     }
 
+    public function measurementItems(): HasMany
+    {
+        return $this->hasMany(MeasurementBillItem::class, 'bill_id')->orderBy('sort_order');
+    }
+
     public function employeeDetails(): HasMany
     {
         return $this->hasMany(EmployeeDetail::class, 'bill_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(BillItem::class, 'bill_id')->orderBy('sort_order');
     }
 }
