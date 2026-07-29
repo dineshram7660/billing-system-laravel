@@ -22,6 +22,7 @@ use App\Http\Controllers\MeasurementEstimateController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\RojmedController;
 use App\Http\Controllers\SalaryDetailController;
 use App\Http\Controllers\SalarySheetController;
 use App\Http\Controllers\SalarySlipController;
@@ -99,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('accounts', AccountController::class);
     Route::post('accounts/{account}/details', [AccountDetailController::class, 'store'])->name('accounts.details.store');
     Route::delete('accounts/{account}/details/{detail}', [AccountDetailController::class, 'destroy'])->name('accounts.details.destroy');
+    Route::get('rojmed', [RojmedController::class, 'index'])->name('rojmed.index');
 
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
