@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bill;
+use App\Models\Estimate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,10 +20,6 @@ use Illuminate\View\View;
  * round-tripping through the legacy delimited `measurement_bill.product`
  * blob — new features build against the normalized tables, matching the
  * pattern established for bill_items/estimate_items.
- *
- * Not ported: the "Copy Measurement" convenience that appends another
- * estimate's measurement sheet onto this bill's — a nice-to-have layered
- * on top of the core editor, not the editor itself.
  */
 class MeasurementBillController extends Controller
 {
@@ -32,7 +29,61 @@ class MeasurementBillController extends Controller
 
         $bill->load('measurementItems.lines');
 
-        return view('bills.measurement', ['bill' => $bill, 'groups' => $this->groupsForForm($bill)]);
+        $copyableEstimates = Estimate::query()
+            ->whereHas('measurementItems')
+            ->orderBy('subject')
+            ->get(['id', 'subject']);
+
+        return view('bills.measurement', [
+            'bill' => $bill,
+            'groups' => $this->groupsForForm($bill),
+            'copyableEstimates' => $copyableEstimates,
+        ]);
+    }
+
+    /**
+     * Rebuilds the "Copy Measurement" convenience from
+     * add_edit_bill_measurement.php: appends another Estimate's
+     * measurement sheet onto this Bill's as additional groups, rather
+     * than replacing what's already there.
+     */
+    public function copyFromEstimate(Request $request, Bill $bill): RedirectResponse
+    {
+        Gate::authorize('edit-measurement');
+
+        $validated = $request->validate([
+            'estimate_id' => ['required', 'integer', 'exists:estimate,id'],
+        ]);
+
+        $estimate = Estimate::with('measurementItems.lines')->findOrFail($validated['estimate_id']);
+
+        DB::transaction(function () use ($bill, $estimate) {
+            $nextOrder = ((int) $bill->measurementItems()->max('sort_order')) + 1;
+
+            foreach ($estimate->measurementItems as $offset => $sourceItem) {
+                $item = $bill->measurementItems()->create([
+                    'total' => $sourceItem->total,
+                    'total_text' => $sourceItem->total_text,
+                    'total_unit' => $sourceItem->total_unit,
+                    'sort_order' => $nextOrder + $offset,
+                ]);
+
+                foreach ($sourceItem->lines as $lineOrder => $sourceLine) {
+                    $item->lines()->create([
+                        'service_no' => $sourceLine->service_no,
+                        'description' => $sourceLine->description,
+                        'no' => $sourceLine->no,
+                        'length' => $sourceLine->length,
+                        'breath' => $sourceLine->breath,
+                        'unit' => $sourceLine->unit,
+                        'quantity' => $sourceLine->quantity,
+                        'sort_order' => $lineOrder,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('bills.measurement.edit', $bill)->with('status', 'Measurement sheet copied successfully.');
     }
 
     public function update(Request $request, Bill $bill): RedirectResponse

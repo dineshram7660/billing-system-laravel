@@ -39,10 +39,11 @@ inventory the roadmap was originally scoped from. That turned up:
   ledger, a dashboard overview widget, Bill photo upload, and the Bill/
   Estimate measurement sheet editors. See the relevant bullets below for
   each.
-- **Post-audit follow-up, now built**: `rojmed.php`, a single-day ledger
-  day book — see the Rojmed bullet below. (Two more follow-ups flagged
-  at the end of Phase 7 — a "Copy Measurement" convenience from Estimate
-  to Bill, and a standalone Employee advance/debit entry UI — are
+- **Post-audit follow-ups, now built**: `rojmed.php` (a single-day
+  ledger day book, see the Rojmed bullet below) and the "Copy
+  Measurement" convenience from Estimate to Bill (see the Measurement
+  sheet editors bullet below). (One more follow-up flagged at the end
+  of Phase 7 — a standalone Employee advance/debit entry UI — is
   tracked separately.)
 
 ## Notable decisions
@@ -422,10 +423,17 @@ inventory the roadmap was originally scoped from. That turned up:
     separate permissions per module (`"Print Bill Measurement"`/
     `"Print Estimate Measurement"`), added as a `printMeasurement()`
     ability on `BillPolicy`/`EstimatePolicy`.
-  - **Not ported**: the "Copy Measurement" convenience on the Bill
-    editor that appends an Estimate's measurement sheet onto the Bill's
-    — a nice-to-have layered on top of the core editor, not the editor
-    itself.
+  - **Copy Measurement** (Bill editor only, `MeasurementBillController::
+    copyFromEstimate()`) rebuilds the auto-submitting select on
+    `add_edit_bill_measurement.php` that appends another Estimate's
+    measurement sheet onto the current Bill's. Legacy round-trips this
+    through the delimited blob (`product = new[(#)]old`, i.e. prepend);
+    the Laravel version instead copies the source Estimate's
+    `measurementItems`/lines as new rows appended after the Bill's
+    existing groups (highest `sort_order` + 1 onward) — additive either
+    way, just ordered oppositely, which doesn't matter since group order
+    within a sheet has no semantic meaning in either app. Only listed
+    when at least one Estimate has a measurement sheet to copy from.
 - **Authorization**: most modules follow `App\Policies\LegacyModulePolicy` —
   the legacy app checks four permission names per module (e.g. `"Department"`,
   `"Add New Department"`, `"Edit Department"`, `"Delete Department"`, see the

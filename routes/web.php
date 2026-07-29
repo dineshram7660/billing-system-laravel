@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::put('bills/{bill}/measurement', [MeasurementBillController::class, 'update'])->name('bills.measurement.update');
     Route::get('bills/{bill}/measurement/print', [MeasurementBillController::class, 'print'])->name('bills.measurement.print');
     Route::get('bills/{bill}/measurement/pdf', [MeasurementBillController::class, 'pdf'])->name('bills.measurement.pdf');
+    Route::post('bills/{bill}/measurement/copy-from-estimate', [MeasurementBillController::class, 'copyFromEstimate'])->name('bills.measurement.copy-from-estimate');
     Route::resource('bills', BillController::class)->except(['show']);
 
     Route::get('estimates/{estimate}/print', [EstimateController::class, 'print'])->name('estimates.print');

@@ -11,17 +11,35 @@
             </div>
         @endif
 
-        <div class="mb-4 flex justify-end gap-3">
-            @can('printMeasurement', $entity)
-                <a href="{{ route('bills.measurement.print', $bill) }}" target="_blank"
-                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
-                    Print
-                </a>
-                <a href="{{ route('bills.measurement.pdf', $bill) }}"
-                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
-                    Download PDF
-                </a>
-            @endcan
+        <div class="mb-4 flex items-center justify-between gap-3">
+            @if ($copyableEstimates->isNotEmpty())
+                <form method="POST" action="{{ route('bills.measurement.copy-from-estimate', $bill) }}" class="flex items-center gap-2">
+                    @csrf
+                    <x-input-label for="estimate_id" value="Copy Measurement" class="sr-only" />
+                    <select id="estimate_id" name="estimate_id" onchange="this.form.submit()"
+                        class="block w-64 rounded-md border-gray-300 text-sm shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <option value="">Copy Measurement from Estimate&hellip;</option>
+                        @foreach ($copyableEstimates as $copyable)
+                            <option value="{{ $copyable->id }}">{{ $copyable->subject }} ({{ $copyable->id }})</option>
+                        @endforeach
+                    </select>
+                </form>
+            @else
+                <div></div>
+            @endif
+
+            <div class="flex gap-3">
+                @can('printMeasurement', $entity)
+                    <a href="{{ route('bills.measurement.print', $bill) }}" target="_blank"
+                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
+                        Print
+                    </a>
+                    <a href="{{ route('bills.measurement.pdf', $bill) }}"
+                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-50">
+                        Download PDF
+                    </a>
+                @endcan
+            </div>
         </div>
 
         <form method="POST" action="{{ route('bills.measurement.update', $bill) }}">

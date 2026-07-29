@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Bill;
+use App\Models\Estimate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
@@ -14,6 +15,11 @@ class MeasurementBillControllerTest extends TestCase
     private function makeBill(): Bill
     {
         return Bill::create(['subject' => 'Measurement test bill', 'bill_date' => now()->toDateString(), 'total' => 0, 'gst_bill' => 0, 'paid' => 0]);
+    }
+
+    private function makeEstimate(): Estimate
+    {
+        return Estimate::create(['subject' => 'Measurement test estimate', 'bill_date' => now()->toDateString(), 'total' => 0]);
     }
 
     public function test_a_user_without_edit_measurement_access_is_forbidden(): void
@@ -72,6 +78,29 @@ class MeasurementBillControllerTest extends TestCase
         $response = $this->actingAs($printUser)->get("/bills/{$bill->id}/measurement/print");
         $response->assertOk();
         $response->assertSee('Measurement Sheet');
+    }
+
+    public function test_it_appends_an_estimates_measurement_sheet_without_replacing_existing_data(): void
+    {
+        $user = User::factory()->subAdmin(['Edit Measurement'])->create();
+        $bill = $this->makeBill();
+        $existingItem = $bill->measurementItems()->create(['total' => 5, 'sort_order' => 0]);
+        $existingItem->lines()->create(['description' => 'Existing line', 'sort_order' => 0]);
+
+        $estimate = $this->makeEstimate();
+        $estimateItem = $estimate->measurementItems()->create(['total' => 12.5, 'total_unit' => 'MTR', 'sort_order' => 0]);
+        $estimateItem->lines()->create(['service_no' => 'SVC9', 'description' => 'Copied line', 'no' => '2', 'length' => '3', 'quantity' => '6.000', 'sort_order' => 0]);
+
+        $response = $this->actingAs($user)->post("/bills/{$bill->id}/measurement/copy-from-estimate", [
+            'estimate_id' => $estimate->id,
+        ]);
+
+        $response->assertRedirect(route('bills.measurement.edit', $bill));
+        $bill->refresh();
+        $this->assertCount(2, $bill->measurementItems);
+        $this->assertSame('Existing line', $bill->measurementItems->first()->lines->first()->description);
+        $this->assertSame('Copied line', $bill->measurementItems->last()->lines->first()->description);
+        $this->assertEquals(12.5, $bill->measurementItems->last()->total);
     }
 
     public function test_pdf_endpoint_downloads_a_pdf(): void
