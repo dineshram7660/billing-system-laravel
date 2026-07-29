@@ -39,6 +39,11 @@ inventory the roadmap was originally scoped from. That turned up:
   ledger, a dashboard overview widget, Bill photo upload, and the Bill/
   Estimate measurement sheet editors. See the relevant bullets below for
   each.
+- **Post-audit follow-up, now built**: `rojmed.php`, a single-day ledger
+  day book — see the Rojmed bullet below. (Two more follow-ups flagged
+  at the end of Phase 7 — a "Copy Measurement" convenience from Estimate
+  to Bill, and a standalone Employee advance/debit entry UI — are
+  tracked separately.)
 
 ## Notable decisions
 
@@ -249,9 +254,21 @@ inventory the roadmap was originally scoped from. That turned up:
   inheriting `LegacyModulePolicy`'s default, which just delegates to
   `viewAny()`) because legacy splits list access (`"Account"`) from
   viewing one account's ledger (`"View Account"`) as two separate
-  permissions. **Not included** (follow-up work): `rojmed.php`, an
-  aggregate ledger register across all accounts — analogous to the GST
-  Report being separate from per-invoice Bill printing.
+  permissions.
+- **Rojmed (`App\Http\Controllers\RojmedController`, Phase 7 audit
+  finding)** rebuilds `rojmed.php` — a single-day "day book" journal
+  across every account: a carried-forward opening balance ("Silak" in
+  legacy) plus every `account_details` entry dated exactly on the
+  selected day, plus a running closing total. Gated by the same
+  `"Account"` permission as the account list (`viewAny` on
+  `App\Models\Account`); delete reuses the existing
+  `accounts.details.destroy` route since a Rojmed entry still belongs to
+  a specific account. Legacy's `add_edit_c_d_account.php?id=X` in-place
+  edit link isn't reproduced — the existing per-account ledger page
+  (`accounts/show.blade.php`) only supports add/delete, not edit, so
+  Rojmed matches that rather than introducing a new capability; the
+  "add" button instead links to the accounts list so the admin can add a
+  transaction from a specific account's own ledger.
 - **Attendance (`App\Http\Controllers\AttendanceController`)** rebuilds
   `attendance.php`/`edit_attendance.php`/`add_attendance.php`/
   `add_admin_attendance.php`/`add_attendance_month.php`. Legacy's
