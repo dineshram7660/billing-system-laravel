@@ -39,12 +39,12 @@ inventory the roadmap was originally scoped from. That turned up:
   ledger, a dashboard overview widget, Bill photo upload, and the Bill/
   Estimate measurement sheet editors. See the relevant bullets below for
   each.
-- **Post-audit follow-ups, now built**: `rojmed.php` (a single-day
-  ledger day book, see the Rojmed bullet below) and the "Copy
+- **Post-audit follow-ups, all now resolved**: `rojmed.php` (a
+  single-day ledger day book, see the Rojmed bullet below), the "Copy
   Measurement" convenience from Estimate to Bill (see the Measurement
-  sheet editors bullet below). (One more follow-up flagged at the end
-  of Phase 7 — a standalone Employee advance/debit entry UI — is
-  tracked separately.)
+  sheet editors bullet below), and a standalone Employee advance/debit
+  entry UI — turned out to already exist via the Employee ledger's
+  nested add-transaction form (see the Employee ledger bullet below).
 
 ## Notable decisions
 
@@ -396,7 +396,17 @@ inventory the roadmap was originally scoped from. That turned up:
   separate permissions. This is also the ledger that
   `SalarySlipController` writes Credit rows into for a slip's advance
   deduction (see the Salary Slip notes above) — those rows now show up
-  here too, alongside any ad-hoc entries added directly.
+  here too, alongside any ad-hoc entries added directly. This nested
+  add-transaction form is the whole of the "standalone Employee
+  advance/debit UI" flagged as a follow-up at the end of Phase 7 —
+  legacy's `add_edit_c_d_employee.php` reached with `?aid=X` does
+  exactly this, and reaching it without an employee already in context
+  (a bare employee-picker dropdown) isn't reproduced, matching how the
+  Account ledger doesn't get a standalone all-accounts picker either
+  (Rojmed's own "add" link instead points back to the accounts list).
+  In-place editing of an existing entry also isn't reproduced here, for
+  the same reason it isn't on the Account ledger: only add/delete exist
+  on either.
 - **Measurement sheet editors** (`App\Http\Controllers\
   MeasurementBillController`/`MeasurementEstimateController`) rebuild
   `add_edit_bill_measurement.php`/`add_edit_estimate_measurement.php` +
