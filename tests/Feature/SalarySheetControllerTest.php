@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Attendance;
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\SalaryDetail;
 use App\Models\User;
@@ -30,7 +31,8 @@ class SalarySheetControllerTest extends TestCase
     public function test_it_computes_present_absent_marks_and_pay_total(): void
     {
         $user = User::factory()->create();
-        $employee = Employee::create(['employee_name' => 'Sheet Test Employee', 'status' => 1]);
+        $designation = Designation::create(['designation_name' => 'Test Designation '.random_int(10000, 99999)]);
+        $employee = Employee::create(['employee_name' => 'Sheet Test Employee', 'status' => 1, 'designation_id' => $designation->id]);
         SalaryDetail::create(['employee_id' => $employee->id, 'par_day_amount' => 400, 'per_day_extra' => 0, 'date' => '2030-01-01']);
         Attendance::create(['employee_id' => $employee->id, 'date' => '2030-01-01', 'attendance' => 1, 'over_time' => 8]);
         Attendance::create(['employee_id' => $employee->id, 'date' => '2030-01-02', 'attendance' => 0, 'over_time' => 0]);
@@ -46,7 +48,8 @@ class SalarySheetControllerTest extends TestCase
     public function test_pdf_endpoint_downloads_a_pdf(): void
     {
         $user = User::factory()->create();
-        Employee::create(['employee_name' => 'Sheet Test Employee 2', 'status' => 1]);
+        $designation = Designation::create(['designation_name' => 'Test Designation '.random_int(10000, 99999)]);
+        Employee::create(['employee_name' => 'Sheet Test Employee 2', 'status' => 1, 'designation_id' => $designation->id]);
 
         $response = $this->actingAs($user)->get('/salary-sheet/pdf?start_date=2030-01-01&end_date=2030-01-02');
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -13,7 +14,9 @@ class EmployeeLedgerTest extends TestCase
 
     private function makeEmployee(): Employee
     {
-        return Employee::create(['employee_name' => 'Ledger Test Employee '.random_int(10000, 99999), 'status' => 1]);
+        $designation = Designation::create(['designation_name' => 'Test Designation '.random_int(10000, 99999)]);
+
+        return Employee::create(['employee_name' => 'Ledger Test Employee '.random_int(10000, 99999), 'status' => 1, 'designation_id' => $designation->id]);
     }
 
     public function test_view_permission_is_distinct_from_list_permission(): void
