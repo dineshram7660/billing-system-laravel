@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Several legacy columns are NOT NULL with no default, and either the
@@ -77,6 +78,15 @@ return new class extends Migration
         DB::statement("SET sql_mode = ''");
 
         foreach (self::COLUMNS as $table => $columns) {
+            // Guarded: a fresh CI database only has the legacy tables
+            // covered by a schema migration so far (see
+            // 2026_07_26_050000_create_legacy_tables_if_missing.php and
+            // CUTOVER.md's "CI/test-suite gap" section) — nothing to
+            // alter for tables that don't exist there.
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
             foreach ($columns as $column => $type) {
                 DB::statement("ALTER TABLE {$table} MODIFY {$column} {$type} NULL");
             }
@@ -88,6 +98,10 @@ return new class extends Migration
         DB::statement("SET sql_mode = ''");
 
         foreach (self::COLUMNS as $table => $columns) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
             foreach ($columns as $column => $type) {
                 $default = str_contains($type, 'INT') ? '0' : "''";
                 DB::statement("UPDATE {$table} SET {$column} = {$default} WHERE {$column} IS NULL");
