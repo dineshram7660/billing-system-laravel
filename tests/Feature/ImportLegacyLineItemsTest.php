@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Bill;
-use App\Models\LegacyImportIssue;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 

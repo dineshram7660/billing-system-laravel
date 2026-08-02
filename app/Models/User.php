@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -40,9 +41,9 @@ class User extends Authenticatable
      * Breeze's default Blade views (nav dropdown, profile page) expect a
      * single `name` attribute; the legacy table splits it in two.
      */
-    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function name(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn () => trim("{$this->first_name} {$this->last_name}"),
         );
     }

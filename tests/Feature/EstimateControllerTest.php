@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Exports\EstimateItemsExport;
 use App\Models\Estimate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
 class EstimateControllerTest extends TestCase
@@ -116,7 +118,7 @@ class EstimateControllerTest extends TestCase
 
     public function test_excel_endpoint_downloads_the_line_items(): void
     {
-        \Maatwebsite\Excel\Facades\Excel::fake();
+        Excel::fake();
 
         $user = User::factory()->create();
         $estimate = Estimate::create(['subject' => 'Excel Estimate', 'bill_date' => now()->toDateString(), 'total' => 200]);
@@ -124,7 +126,7 @@ class EstimateControllerTest extends TestCase
 
         $this->actingAs($user)->get("/estimates/{$estimate->id}/excel");
 
-        \Maatwebsite\Excel\Facades\Excel::assertDownloaded("estimate-{$estimate->id}.xlsx", function (\App\Exports\EstimateItemsExport $export) {
+        Excel::assertDownloaded("estimate-{$estimate->id}.xlsx", function (EstimateItemsExport $export) {
             return $export->collection()->count() === 1;
         });
     }

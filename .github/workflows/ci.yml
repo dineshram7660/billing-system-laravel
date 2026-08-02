@@ -1,0 +1,39 @@
+# Lint/build gate only, not a test-suite gate: the feature test suite
+# requires a real MySQL copy of the 21 legacy tables (see phpunit.xml and
+# CUTOVER.md's "CI/test-suite gap" section) that CI doesn't have. Run
+# `php artisan test` locally before opening a PR.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check code style (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build

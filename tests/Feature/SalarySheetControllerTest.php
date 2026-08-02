@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\SalaryDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
 /**
@@ -56,12 +57,12 @@ class SalarySheetControllerTest extends TestCase
 
     public function test_excel_endpoint_downloads_the_sheet(): void
     {
-        \Maatwebsite\Excel\Facades\Excel::fake();
+        Excel::fake();
 
         $user = User::factory()->create();
 
         $this->actingAs($user)->get('/salary-sheet/excel?start_date=2030-01-01&end_date=2030-01-02');
 
-        \Maatwebsite\Excel\Facades\Excel::assertDownloaded('Bhavani_Engineering_Salary_Sheet.xlsx');
+        Excel::assertDownloaded('Bhavani_Engineering_Salary_Sheet.xlsx');
     }
 }

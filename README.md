@@ -18,6 +18,10 @@ the full phase plan and reasoning.
 | 6 | Remaining modules + API layer | ✅ Done |
 | 7 | Post-roadmap audit findings (see below) | ✅ Done |
 
+Feature parity with the legacy app is complete. What's left before this can
+actually go live (env config, data/file cutover, backups, rollback) is
+tracked in [`CUTOVER.md`](CUTOVER.md).
+
 ## Phase 7: post-roadmap audit
 
 After Phase 6, every legacy `admin/*.php` file was checked one by one
@@ -61,9 +65,10 @@ inventory the roadmap was originally scoped from. That turned up:
   cast (or add a migration making the column nullable, like the one for
   `bill.ref_date`/`paid_date`) for any date column you touch that might carry
   legacy zero-dates.
-- **Sidebar links marked "Soon"** in `resources/views/layouts/admin.blade.php`
-  are modules not yet ported — they're intentionally inert placeholders, not
-  bugs.
+- **`change_password.php`** (the legacy super-admin's own password-change
+  page) has no dedicated port — it's covered by Laravel Breeze's stock
+  `password.update` route/`PasswordController`, standard auth scaffolding
+  rather than a page ported one-for-one.
 - Running against **a copy of the production database** (`bhavani_laravel`),
   not the same connection the legacy app writes to — see `.env.example`.
 - **`config/database.php`'s mysql connection disables strict mode** (`strict`

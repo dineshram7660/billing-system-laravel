@@ -8,6 +8,7 @@ use App\Models\MeasurementEstimate;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -86,7 +87,7 @@ class ImportLegacyMeasurements extends Command
      * @return array{imported: int, empty: int, skipped: int}
      */
     private function importFrom(
-        \Illuminate\Database\Eloquent\Builder $query,
+        Builder $query,
         string $sourceTable,
         string $sourceForeignKey,
         string $targetForeignKey,
@@ -188,9 +189,9 @@ class ImportLegacyMeasurements extends Command
 
     /**
      * @return array<int, array{total: string, total_text: string, total_unit: string, lines: array<int, array<string, string>>}>|null|false
-     *   null: nothing to import; false: malformed, needs manual review;
-     *   array: one entry per product group, each carrying its measurement
-     *   lines.
+     *
+     * null: nothing to import; false: malformed, needs manual review;
+     * array: one entry per product group, each carrying its measurement lines.
      */
     private function parse(?string $product): array|null|false
     {

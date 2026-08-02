@@ -6,6 +6,7 @@ use App\Models\Bill;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -42,7 +43,7 @@ class GstReportController extends Controller
     }
 
     /**
-     * @return array{rows: \Illuminate\Support\Collection, totals: array<string, float>, startDate: string, endDate: string}
+     * @return array{rows: Collection, totals: array<string, float>, startDate: string, endDate: string}
      */
     private function reportData(Request $request): array
     {

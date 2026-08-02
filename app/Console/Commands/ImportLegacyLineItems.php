@@ -8,7 +8,7 @@ use App\Models\LegacyImportIssue;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -65,7 +65,7 @@ class ImportLegacyLineItems extends Command
      * @return array{imported: int, empty: int, skipped: int}
      */
     private function importFrom(
-        \Illuminate\Database\Eloquent\Builder $query,
+        Builder $query,
         string $sourceTable,
         string $foreignKey,
         string $itemsTable,
@@ -126,9 +126,10 @@ class ImportLegacyLineItems extends Command
     }
 
     /**
-     * @return array<int, array<string, string>>|null|false null: nothing
-     *   to import (blank/placeholder product); false: malformed, needs
-     *   manual review; array: one row per line item, in order.
+     * @return array<int, array<string, string>>|null|false
+     *
+     * null: nothing to import (blank/placeholder product); false: malformed,
+     * needs manual review; array: one row per line item, in order.
      */
     private function parse(?string $product): array|null|false
     {
