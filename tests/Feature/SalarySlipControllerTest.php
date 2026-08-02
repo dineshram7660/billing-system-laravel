@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Attendance;
+use App\Models\Designation;
 use App\Models\Employee;
 use App\Models\EmployeeDetail;
 use App\Models\SalaryDetail;
@@ -17,7 +18,9 @@ class SalarySlipControllerTest extends TestCase
 
     private function makeEmployee(): Employee
     {
-        return Employee::create(['employee_name' => 'Test Employee '.random_int(10000, 99999), 'status' => 1]);
+        $designation = Designation::create(['designation_name' => 'Test Designation '.random_int(10000, 99999)]);
+
+        return Employee::create(['employee_name' => 'Test Employee '.random_int(10000, 99999), 'status' => 1, 'designation_id' => $designation->id]);
     }
 
     public function test_a_user_without_salary_slip_access_is_forbidden(): void

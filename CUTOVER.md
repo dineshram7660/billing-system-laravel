@@ -23,21 +23,21 @@ Starting from `.env.example`, a real deploy needs at least:
   Redis/Memcached if the eventual hosting setup runs multiple app
   servers behind a load balancer.
 
-## Legacy column defaults (revisit before removing a workaround)
+## Legacy column defaults — done (2026-08-02)
 
-`config/database.php`'s `mysql` connection disables strict mode
-(`strict => false` + `MYSQL_ATTR_INIT_COMMAND` clearing `sql_mode`)
+`config/database.php`'s `mysql` connection used to disable strict mode
 because several legacy columns — e.g. `employee.username`/`password` —
-are `NOT NULL` with no default, and the legacy forms never set them; they
-only ever worked under MySQL's older lenient defaults. Before that
-workaround can be safely removed:
-
-1. Audit the legacy schema for all NOT-NULL-no-default columns that the
-   app's own forms don't always populate.
-2. Add a migration giving each a real default or making it nullable
-   (same pattern as the existing migration for `bill.ref_date`/
-   `paid_date`).
-3. Only then drop the `strict`/`MYSQL_ATTR_INIT_COMMAND` override.
+were `NOT NULL` with no default, and either the app's own forms treated
+them as optional or never populated them at all. Resolved: three parallel
+research passes cross-referenced every NOT-NULL-no-default legacy column
+against the app's actual Eloquent write paths, found 26 real gaps across
+9 tables (`bill`, `estimate`, `quotation`, `product`, `employee`,
+`account`, `employee_details`, `expenses`, `income`), and
+`2026_08_02_000000_make_legacy_not_null_columns_nullable` made all of
+them real `NULL`able columns. `config/database.php` now runs with
+`strict => true`, Laravel's normal default. Tables with no active insert
+path from Laravel at all (`bill_estimate`, `sub_access`, `inquery`,
+`report`) were left untouched — no insert path means no strict-mode risk.
 
 Not done in this pass — doing it blind risks breaking existing inserts.
 

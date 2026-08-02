@@ -71,12 +71,16 @@ inventory the roadmap was originally scoped from. That turned up:
   rather than a page ported one-for-one.
 - Running against **a copy of the production database** (`bhavani_laravel`),
   not the same connection the legacy app writes to — see `.env.example`.
-- **`config/database.php`'s mysql connection disables strict mode** (`strict`
-  => false + `MYSQL_ATTR_INIT_COMMAND` clearing sql_mode). Several legacy
-  columns (e.g. `employee.username`/`password`) are NOT NULL with no default
-  and the legacy forms never set them — they only ever worked because the
-  original app's MySQL config was lenient. Revisit once Phase 3 gives these
-  columns real defaults/nullability instead of relying on this.
+- **`config/database.php`'s mysql connection runs with strict mode on**,
+  Laravel's normal default. It used to be disabled because several legacy
+  columns (e.g. `employee.username`/`password`) were NOT NULL with no
+  default and the app's own write paths didn't always set them — some
+  are genuinely optional fields the current forms validate as
+  `nullable`, others are dead legacy columns the app never populates at
+  all. The
+  `2026_08_02_000000_make_legacy_not_null_columns_nullable` migration
+  gives every one of those columns (26 across 9 tables) a real
+  `NULLable` definition instead, so the workaround was removed.
 - **Line items and measurements are normalized out of delimited text
   columns.** `bill.product`/`estimate.product` (an `"[#]"`/`"[@]"`-delimited
   blob) is backfilled into `bill_items`/`estimate_items` by
