@@ -1,12 +1,12 @@
 # lint-and-build is a lint/build gate only, not a full test-suite gate:
 # most of the feature suite still requires a real MySQL copy of the
 # legacy tables that don't have schema migrations yet (see phpunit.xml
-# and CUTOVER.md's "CI/test-suite gap" section). test-employee-module is
-# the first slice of that gap closed for real: it runs a genuinely bare
-# MySQL service container through `php artisan migrate` and the
-# Employee-module feature tests, proving the guarded-migration pattern
-# works end-to-end. Run the rest of `php artisan test` locally before
-# opening a PR.
+# and CUTOVER.md's "CI/test-suite gap" section). test-employee-module and
+# test-bill-estimate-module are slices of that gap closed for real: each
+# runs a genuinely bare MySQL service container through
+# `php artisan migrate` and that module's feature tests, using the same
+# guarded-migration pattern. Run the rest of `php artisan test` locally
+# before opening a PR.
 name: CI
 
 on:
@@ -106,5 +106,71 @@ jobs:
         env:
           DB_HOST: 127.0.0.1
           DB_DATABASE: employee_module_ci
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+
+  test-bill-estimate-module:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: bill_estimate_module_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: bill_estimate_module_ci
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+
+      - name: Run migrations against a bare database
+        run: php artisan migrate --force
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: bill_estimate_module_ci
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+
+      - name: Run Bill/Estimate-module feature tests
+        run: >
+          php artisan test
+          --filter='BillControllerTest|EstimateControllerTest|QuotationControllerTest|MeasurementBillControllerTest|MeasurementEstimateControllerTest|GstReportControllerTest|EstimateMailControllerTest|BillPhotoControllerTest|ImportLegacyLineItemsTest|ImportLegacyMeasurementsTest|ImportLegacyBillPhotosTest'
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: bill_estimate_module_ci
           DB_USERNAME: root
           DB_PASSWORD: ""

@@ -122,35 +122,62 @@ dump; see `phpunit.xml`'s comment), which have no Laravel migrations at
 all — a GitHub Actions MySQL service container starts empty, so it can't
 run those tests as written.
 
-First slice done: `2026_07_26_050000_create_legacy_tables_if_missing.php`
-adds guarded (`Schema::hasTable()`-gated) schema migrations for the 8
-legacy tables the **Employee module** needs — `admin` (every test needs
-this one, for auth), `department`, `designation`, `employee`,
-`employee_details`, `attendance`, `salary_details`, `salary_slip`. Six
-other migrations that unconditionally touched legacy tables outside this
-slice (raw `ALTER TABLE bill`, or an inline `$table->foreign(...)->on('bill'/'estimate')`
+**First slice — Employee module, done**:
+`2026_07_26_050000_create_legacy_tables_if_missing.php` adds guarded
+(`Schema::hasTable()`-gated) schema migrations for the 8 legacy tables
+the Employee module needs — `admin` (every test needs this one, for
+auth), `department`, `designation`, `employee`, `employee_details`,
+`attendance`, `salary_details`, `salary_slip`. Six other migrations that
+unconditionally touched legacy tables outside this slice (raw `ALTER
+TABLE bill`, or an inline `$table->foreign(...)->on('bill'/'estimate')`
 constraint) got the same `Schema::hasTable()` guard, since `php artisan
 migrate` runs every migration in the folder — not just the ones for
 tables a given slice cares about — and would otherwise fail outright on
-a bare database. The new `test-employee-module` CI job runs a genuinely
-bare `mysql:8` service container through `php artisan migrate` and the
-five Employee-module feature test files, and passes — proof the pattern
-works, not just a local claim.
+a bare database. `test-employee-module` runs a genuinely bare `mysql:8`
+service container through `php artisan migrate` and the five
+Employee-module feature test files, and passes.
 
-**Remaining scope for future slices** — 13 legacy tables still have no
-schema migration: `bill`, `estimate`, `quotation`, `product`, `account`,
-`account_details`, `bill_estimate`, `expenses`, `income`, `email_send`,
-`inquery`, `report`, `sub_access`. Each future slice is the same shape as
-this one: add a guarded `Schema::create()` for the tables a module's
-tests need (in their *original* legacy column shape, so existing
-ALTER-based migrations like `make_legacy_not_null_columns_nullable` keep
-working unmodified on top), add a scoped CI job, and expand the
+**Second slice — Bill/Estimate module, done**:
+`2026_07_26_050001_create_bill_estimate_tables_if_missing.php` covers
+`bill`, `estimate`, `quotation`, `product`, `bill_estimate`,
+`measurement_bill`, `measurement_estimate` (the last two are the raw
+legacy blob tables `MeasurementBill`/`MeasurementEstimate` map to —
+distinct from the already-migrated `measurement_bill_items`/
+`measurement_estimate_items`), plus `email_send` — not originally scoped
+to this module, but running the tests against a bare database (not just
+checking test-file imports) surfaced that `EstimateMailControllerTest`
+exercises a write into it as a side effect of sending an estimate. The
+`bill`/`estimate` FK constraints in `create_bill_items_table` and
+friends (guarded in the first slice) now actually attach on a fresh
+database, same as production. One real fix needed along the way: the
+`id` columns had to be plain signed `int` (`$table->integer('id')->autoIncrement(); $table->primary('id');`),
+not Laravel's default `bigint unsigned` from `$table->id()` — MySQL
+rejects a foreign key whose referencing and referenced column types
+don't match exactly, and the legacy schema's ids are signed `int`
+throughout. `test-bill-estimate-module` runs the same bare-database
+pattern against 11 feature test files and passes.
+
+Also corrected an earlier miscount here: this section used to say 13
+legacy tables remained after the Employee slice — actually 15, because
+`measurement_bill`/`measurement_estimate` were missed. The count above
+already reflects the fix.
+
+**Remaining scope for future slices** — 8 legacy tables still have no
+schema migration: `account`, `account_details`, `expenses`, `income`,
+`inquery`, `report`, `sub_access`, and (per the `DashboardControllerTest`
+gap noted below) nothing further blocks it once `expenses`/`income` land.
+Each future slice is the same shape as the two done so far: add a
+guarded `Schema::create()` for the tables a module's tests need (in
+their *original* legacy column shape, so existing ALTER-based migrations
+like `make_legacy_not_null_columns_nullable` keep working unmodified on
+top), add a scoped CI job, run the tests against a real throwaway
+database first — not just a test-file-import grep — to catch hidden
+dependencies like `email_send` above, and expand the
 `Schema::hasTable()` guards already in place if a new slice's tables get
-referenced by an existing migration the way `bill`/`estimate` were here.
-Once every table has a guarded migration, `lint-and-build` and every
-scoped job can collapse back into one job running the whole suite, and
-`php artisan test` against `.env.testing` can stop being purely a
-local/manual pre-PR check.
+referenced by an existing migration. Once every table has a guarded
+migration, `lint-and-build` and every scoped job can collapse back into
+one job running the whole suite, and `php artisan test` against
+`.env.testing` can stop being purely a local/manual pre-PR check.
 
 ## Post-cutover smoke test
 
