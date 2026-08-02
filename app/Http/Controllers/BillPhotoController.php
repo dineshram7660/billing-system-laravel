@@ -16,10 +16,11 @@ use Illuminate\View\View;
  * (upload_image() in the legacy app), so `photo` here holds storage
  * paths (`bill-photos/xyz.jpg`), not the bare filenames legacy used.
  * Pre-existing legacy photo values reference files that only exist on
- * the legacy server's disk, not this app's storage — this app only ever
- * had a copy of the database, never the upload directory, so those
- * thumbnails will 404 (broken image icon) rather than resolve; nothing
- * to fix here since the underlying files were never in scope to migrate.
+ * the legacy server's disk, not this app's storage, until
+ * App\Console\Commands\ImportLegacyBillPhotos is run against a copy of
+ * the legacy upload directory — that command copies the files in and
+ * rewrites bill.photo to the paths this controller expects. Until then,
+ * those thumbnails 404 (broken image icon) rather than resolve.
  */
 class BillPhotoController extends Controller
 {

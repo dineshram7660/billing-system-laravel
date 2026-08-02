@@ -56,23 +56,36 @@ window:
    `php artisan legacy:import-measurements --fresh` (see
    `App\Console\Commands\ImportLegacyLineItems` /
    `ImportLegacyMeasurements`) against the freshly-restored data.
-6. Check the `legacy_import_issues` table — empty, or only rows already
+6. Run `php artisan legacy:import-bill-photos --source=...` (see the
+   "File/upload migration" section below) and `php artisan storage:link`.
+7. Check the `legacy_import_issues` table — empty, or only rows already
    known/accepted from earlier dry runs. Don't cut traffic over with new
    unexplained rows there.
-7. Run the post-cutover smoke test below.
-8. Point traffic (DNS / load balancer / reverse proxy) at the Laravel
+8. Run the post-cutover smoke test below.
+9. Point traffic (DNS / load balancer / reverse proxy) at the Laravel
    app.
 
-## File/upload migration
+## File/upload migration — done (2026-08-02)
 
-Legacy bill photo uploads live in the legacy app's `images/` directory.
-The Laravel app's `App\Http\Controllers\BillPhotoController` writes to
-the `public` disk (`storage/app/public`, served via
-`php artisan storage:link`). There's currently no step that copies
-existing legacy-uploaded photos into that disk and reconciles their DB
-references — without it, old bill photos will 404 after cutover. Needs a
-one-off copy script as part of the cutover, written once the actual file
-layout/paths in `images/` are inventoried.
+Legacy bill photo uploads live in the legacy app's `admin/image/`
+directory (`UPLOAD_URL` in `admin/includes/config.php` — not the
+repo-root `images/` directory, which turned out to be static site
+assets, not uploads). `App\Console\Commands\ImportLegacyBillPhotos`
+copies each file `bill.photo` references into `storage/app/public/
+bill-photos/` and rewrites `bill.photo` to the disk-relative path
+`App\Http\Controllers\BillPhotoController` expects. Run as part of the
+data cutover sequence above, after the legacy DB dump is restored:
+
+```
+php artisan legacy:import-bill-photos --source=/path/to/legacy/admin/image
+```
+
+(or set `LEGACY_BILL_PHOTOS_PATH` in `.env` and drop `--source`). Safe to
+re-run — already-migrated bills and already-copied files are left alone.
+Any referenced file missing from the source directory is logged to
+`legacy_import_issues` (`source_table = 'bill_photo'`) rather than
+silently dropped without a trace, and don't forget
+`php artisan storage:link` so the copied files are actually served.
 
 ## Backups
 
