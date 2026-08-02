@@ -20,7 +20,11 @@ return new class extends Migration
             // Signed integer, not foreignId: bill.id is a plain signed
             // `int`, not `bigint` — see bill_items for the same note.
             $table->integer('bill_id');
-            $table->foreign('bill_id')->references('id')->on('bill')->cascadeOnDelete();
+            // Guarded: see the equivalent comment in
+            // create_bill_items_table.php.
+            if (Schema::hasTable('bill')) {
+                $table->foreign('bill_id')->references('id')->on('bill')->cascadeOnDelete();
+            }
             // Left as strings rather than decimal: this is legacy display
             // data (a formatted running total per product group) and its
             // cleanliness hasn't been audited as closely as bill_items'

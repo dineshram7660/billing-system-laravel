@@ -22,7 +22,14 @@ return new class extends Migration
             // this legacy schema — a foreign key requires an exact type
             // match including signedness.
             $table->integer('bill_id');
-            $table->foreign('bill_id')->references('id')->on('bill')->cascadeOnDelete();
+            // Guarded: `bill` doesn't exist on a fresh CI database outside
+            // the legacy tables covered so far — see CUTOVER.md's
+            // "CI/test-suite gap" section. MySQL rejects a FOREIGN KEY
+            // clause referencing a nonexistent table, so this constraint
+            // is skipped there rather than breaking the whole migration.
+            if (Schema::hasTable('bill')) {
+                $table->foreign('bill_id')->references('id')->on('bill')->cascadeOnDelete();
+            }
             // Nullable + no FK constraint: the legacy product_id sometimes
             // references a product that's since been deleted, and a few
             // rows have no id at all.

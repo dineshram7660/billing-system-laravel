@@ -19,7 +19,11 @@ return new class extends Migration
             // rest of this legacy schema — a foreign key requires an
             // exact type match including signedness.
             $table->integer('estimate_id');
-            $table->foreign('estimate_id')->references('id')->on('estimate')->cascadeOnDelete();
+            // Guarded: see the equivalent comment in
+            // create_bill_items_table.php.
+            if (Schema::hasTable('estimate')) {
+                $table->foreign('estimate_id')->references('id')->on('estimate')->cascadeOnDelete();
+            }
             $table->integer('product_id')->nullable();
             $table->string('service_no')->nullable();
             $table->string('product_name');

@@ -112,29 +112,45 @@ configured. Should be in place before go-live so failures in production
 are visible, but the specific service and setup are deferred until
 needed.
 
-## CI/test-suite gap
+## CI/test-suite gap — partially closed (2026-08-02)
 
-`.github/workflows/ci.yml` only runs style checks (Pint) and the asset
-build — not the feature test suite. That's because `phpunit.xml`
-deliberately has no `DB_*` overrides: the test suite runs against a real
-MySQL copy of the 21 legacy tables (imported from a DB dump; see
-`phpunit.xml`'s comment), which have no Laravel migrations at all, only
-the 13 new-feature tables do. A GitHub Actions MySQL service container
-starts empty, so it can't run these tests as they're written today.
+`.github/workflows/ci.yml`'s `lint-and-build` job only runs style checks
+(Pint) and the asset build, not the feature test suite. That's because
+`phpunit.xml` deliberately has no `DB_*` overrides: most of the suite
+runs against a real MySQL copy of the legacy tables (imported from a DB
+dump; see `phpunit.xml`'s comment), which have no Laravel migrations at
+all — a GitHub Actions MySQL service container starts empty, so it can't
+run those tests as written.
 
-Closing this gap is its own future initiative, not attempted here — two
-real options:
+First slice done: `2026_07_26_050000_create_legacy_tables_if_missing.php`
+adds guarded (`Schema::hasTable()`-gated) schema migrations for the 8
+legacy tables the **Employee module** needs — `admin` (every test needs
+this one, for auth), `department`, `designation`, `employee`,
+`employee_details`, `attendance`, `salary_details`, `salary_slip`. Six
+other migrations that unconditionally touched legacy tables outside this
+slice (raw `ALTER TABLE bill`, or an inline `$table->foreign(...)->on('bill'/'estimate')`
+constraint) got the same `Schema::hasTable()` guard, since `php artisan
+migrate` runs every migration in the folder — not just the ones for
+tables a given slice cares about — and would otherwise fail outright on
+a bare database. The new `test-employee-module` CI job runs a genuinely
+bare `mysql:8` service container through `php artisan migrate` and the
+five Employee-module feature test files, and passes — proof the pattern
+works, not just a local claim.
 
-- Write schema-only migrations for the 21 legacy tables plus synthetic
-  fixture data, decoupling tests from real business data entirely (large
-  but the "correct" long-term fix).
-- Restore a sanitized/anonymized dump in CI from a securely-stored
-  source — a data-handling decision that needs an explicit call on what's
-  safe to put in CI, not something to default into.
-
-Until one of those happens, `php artisan test` against `.env.testing`
-stays a local/manual pre-PR check, same as it's been for every feature
-built so far.
+**Remaining scope for future slices** — 13 legacy tables still have no
+schema migration: `bill`, `estimate`, `quotation`, `product`, `account`,
+`account_details`, `bill_estimate`, `expenses`, `income`, `email_send`,
+`inquery`, `report`, `sub_access`. Each future slice is the same shape as
+this one: add a guarded `Schema::create()` for the tables a module's
+tests need (in their *original* legacy column shape, so existing
+ALTER-based migrations like `make_legacy_not_null_columns_nullable` keep
+working unmodified on top), add a scoped CI job, and expand the
+`Schema::hasTable()` guards already in place if a new slice's tables get
+referenced by an existing migration the way `bill`/`estimate` were here.
+Once every table has a guarded migration, `lint-and-build` and every
+scoped job can collapse back into one job running the whole suite, and
+`php artisan test` against `.env.testing` can stop being purely a
+local/manual pre-PR check.
 
 ## Post-cutover smoke test
 

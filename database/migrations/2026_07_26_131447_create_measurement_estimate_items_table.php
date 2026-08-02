@@ -18,7 +18,11 @@ return new class extends Migration
             // Signed integer, not foreignId: estimate.id is a plain
             // signed `int`, not `bigint` — see estimate_items.
             $table->integer('estimate_id');
-            $table->foreign('estimate_id')->references('id')->on('estimate')->cascadeOnDelete();
+            // Guarded: see the equivalent comment in
+            // create_bill_items_table.php.
+            if (Schema::hasTable('estimate')) {
+                $table->foreign('estimate_id')->references('id')->on('estimate')->cascadeOnDelete();
+            }
             $table->string('total')->nullable();
             $table->string('total_text')->nullable();
             $table->string('total_unit')->nullable();
